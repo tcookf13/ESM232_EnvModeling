@@ -1,0 +1,27 @@
+---
+title: 'Assignment 2: Almond Yield'
+author: "Taylor Cook"
+date: "2025-04-08"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+
+```
+
+# Question 1
+
+```{r}
+
+
+
+```
+
+# Big header
+
+## smaller header
+
+### smallest

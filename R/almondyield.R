@@ -1,0 +1,1 @@
+#almond yield function for assignment 2
