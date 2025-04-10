@@ -12,12 +12,13 @@
 #' Computes almond yield anomaly based on minimum temperature and precipitation.
 #' @param Tn2 Minimum temperature for month 2 (degrees Celsius)
 #' @param P1 Precipitation for month 1 (mm)
+#' @param climate  array with the following columns day month year wy tmax_C tmin_C and precip (mm)
 #' @param coeffs A vector of model coefficients (e.g., c(0.015, -0.0046, -0.07, 0.0043, 0.28)).
 #' @return Yield anomaly (ton/acre)
 #' @author Taylor Cook
 
 
-almondyield <- function(Tn2,P1) {
+almondyield <- function(Tn2, P1, climate) {
   # Define the coefficients for the model
   coeffs <- c(0.015, -0.0046, -0.07, 0.0043, 0.28)
   
