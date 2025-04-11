@@ -15,8 +15,9 @@
 #' @param climate  array with the following columns day month year wy tmax_C tmin_C and precip (mm)
 #' @param coeffs A vector of model coefficients (e.g., c(0.015, -0.0046, -0.07, 0.0043, 0.28)) from Lobell et al. (2006)
 #' @return Yield anomaly (ton/acre)
-#' @author Taylor Cook and Kelsey Warren
-
+#' @author Taylor Cook
+#' 
+#' function definition
 
 almondyield <- function(Tn2, P1, climate) {
   # Define the coefficients for the model
@@ -24,17 +25,13 @@ almondyield <- function(Tn2, P1, climate) {
   
   
   # CLIMATE DATA PREP
-  # extract daily min temp data for February 
-  temp_min_feb_daily <- clim$tmin_c %>% 
-    filter(month == 2) 
-  # average the daily min temp for February
-  Tn2 <- mean(temp_min_feb_daily)
+  # february data for Tn2 (min temp for Feb)
+  feb_data <- clim_year[clim_year$month == 2, ]
+  Tn2 <- mean(feb_data$tmin_c, na.rm = TRUE)
   
-  # extract the daily precip data for Jan
-  precip_jan_daily <- clim$precip %>% 
-    filter(month == 1)
-  # average the daily precip data for Jan
-  P1 <- mean(precip_jan_daily)
+  # january data for P1 (precip for Jan)
+  jan_data <- clim_year[clim_year$month == 1, ]
+  P1 <- mean(jan_data$precip, na.rm = TRUE)
   
   
   
@@ -56,3 +53,4 @@ almondyield <- function(Tn2, P1, climate) {
   # Return the yield anomaly
   return(yield_anomaly)
 }
+

@@ -1,19 +1,25 @@
 ---
-title: 'Assignment 2: Almond Yield'
-author: "Taylor Cook"
-date: "2025-04-08"
-output: pdf_document
+title: "Warren_Cook_AlmondYield"
+author: "Kelsey Warren and Taylor Cook"
+date: "2025-04-10"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Almond Yield Assignment
+
+```{r setup, include=FALSE}
 
 library(tidyverse)
 library(here)
 
 
 #load the data
-clim <- read.table(here("data/clim.txt"), header = TRUE, sep = "", strip.white = TRUE)
+clim <- read.table(here("clim.txt"), header = TRUE, sep = "", strip.white = TRUE)
+#clim <- read.delim("clim.txt")
 
 #check data
 colnames(clim)
@@ -26,40 +32,75 @@ head(clim)
 
 ```{r}
 
-source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almondyield.R"))
-almondyield
+source("~/Desktop/232 Modeling/Almond_Yield_HW/R/almondyield.R")
 
 ```
 
-# Plot 
+# Run the Function for years 1988 to 2010 
+
+```{r }
+
+# PREP BEFORE THE FOR LOOP 
+# make year in the clim dataset numeric
+clim$year <- as.numeric(as.character(clim$year))
+
+# create a list of the years 1988-2010
+years <- sort(unique(clim$year))
+print("Years to loop through:")
+print(years)
+
+# create a data frame to store the almond yield results for 1988-2010
+yield_results <- data.frame(year = numeric(), yield_anomaly = numeric())
+
+
+
+# FOR LOOP
+for (yr in years) {
+  cat("Processing year:", yr, "\n")
+  
+  clim_year <- clim[clim$year == yr, ]
+  
+  if (nrow(clim_year) == 0) {
+    cat("No data for year", yr, "\n")
+    next
+  }
+  
+  yield <- almondyield(clim_year)  
+
+  cat("Yield for year", yr, ":", yield, "\n")
+  
+  yield_results <- rbind(yield_results,
+                         data.frame(year = yr, yield_anomaly = yield))
+}
+
+print("Final results:")
+print(yield_results)
+
+
+```
+
+# Analyze Results
+```{r}
+
+max(yield_results$yield_anomaly, na.rm = TRUE)
+min(yield_results$yield_anomaly, na.rm = TRUE)
+mean(yield_results$yield_anomaly, na.rm = TRUE)
+
+
+
+```
+
+
+
+# Plot
 
 ```{r}
 # plot
-
-
-```
-
-
-
-# Run Model
-
-```{r}
-#example model code
-
-
-# run the model
-almondyield(area = 0.1, data = clim, 
-        clr = "green", eunit = "W", g=FALSE)
-
-# run and save results - but don't plot
-site1 <- solarpv(area = 0.1, solar = sierraczosolar, 
-            clr = "green", eunit = "W", g = FALSE)
-site1$mean
-site1$annual
+for 
 
 ```
 
 
-## smaller header
 
-### smallest
+
+
