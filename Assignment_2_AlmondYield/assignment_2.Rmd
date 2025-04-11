@@ -1,42 +1,55 @@
 ---
-title: "Warren_Cook_AlmondYield"
-author: "Kelsey Warren and Taylor Cook"
-date: "2025-04-10"
-output: html_document
+title: 'Assignment 2: Almond Yield'
+author: "Taylor Cook"
+date: "2025-04-08"
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
-
-## Almond Yield Assignment
-
-```{r setup, include=FALSE}
 
 library(tidyverse)
 library(here)
 
 
 #load the data
-clim <- read.table(here("clim.txt"), header = TRUE, sep = "", strip.white = TRUE)
-#clim <- read.delim("clim.txt")
+clim <- read.table(here("data/clim.txt"), header = TRUE, sep = "", strip.white = TRUE)
+
 
 #check data
 colnames(clim)
 head(clim)
 
-
 ```
+
+# Almond Yield Formula
+
+$$
+\mathrm{Y = -0.015T_{n,2}-0.0046T_{n,2}^{2}-0.07P_{1}+0.0043P_{1}^{2}+0.28}
+$$ **Where:**
+
+-   Y = yield anomaly (ton acre\^-1)
+
+-   T_n = Minimum temperature (C) for desired month
+
+-   P = Precipitation (mm) Total precipitation for the month prior to desired month
+
+## Conceptual Model
+
+<img src="conceptualmodel_almondyield.jpeg" style="display: block; margin-left: auto; margin-right: auto; width: 80%;"/>
 
 # Source the Function
 
 ```{r}
 
-source("~/Desktop/232 Modeling/Almond_Yield_HW/R/almondyield.R")
+source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almondyield.R"))
+almondyield
 
 ```
 
-# Run the Function for years 1988 to 2010 
+
+
+# Run the Function for years 1988 to 2010
 
 ```{r }
 
@@ -80,6 +93,7 @@ print(yield_results)
 ```
 
 # Analyze Results
+
 ```{r}
 
 max(yield_results$yield_anomaly, na.rm = TRUE)
@@ -90,8 +104,6 @@ mean(yield_results$yield_anomaly, na.rm = TRUE)
 
 ```
 
-
-
 # Plot
 
 ```{r}
@@ -99,8 +111,3 @@ mean(yield_results$yield_anomaly, na.rm = TRUE)
 for 
 
 ```
-
-
-
-
-
