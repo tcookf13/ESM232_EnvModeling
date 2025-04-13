@@ -47,8 +47,6 @@ almondyield
 
 ```
 
-
-
 # Run the Function for years 1988 to 2010
 
 ```{r }
@@ -58,9 +56,7 @@ almondyield
 clim$year <- as.numeric(as.character(clim$year))
 
 # create a list of the years 1988-2010
-years <- sort(unique(clim$year))
-print("Years to loop through:")
-print(years)
+years <- 1988:2010
 
 # create a data frame to store the almond yield results for 1988-2010
 yield_results <- data.frame(year = numeric(), yield_anomaly = numeric())
@@ -78,7 +74,7 @@ for (yr in years) {
     next
   }
   
-  yield <- almondyield(clim_year)  
+  yield <- almondyield(yr, clim_year)  
 
   cat("Yield for year", yr, ":", yield, "\n")
   
@@ -107,7 +103,15 @@ mean(yield_results$yield_anomaly, na.rm = TRUE)
 # Plot
 
 ```{r}
-# plot
-for 
+
+
+# Create a plot of the yield anomaly over the years
+ggplot(yield_results, aes(x = year, y = yield_anomaly)) +
+  geom_line(color = "blue") +
+  geom_point(color = "red") +
+  labs(title = "Almond Yield Anomaly (1988-2010)",
+       x = "Year",
+       y = "Yield Anomaly (ton acre^-1)") +
+  theme_minimal()
 
 ```
