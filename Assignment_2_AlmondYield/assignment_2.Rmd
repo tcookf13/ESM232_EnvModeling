@@ -1,8 +1,10 @@
 ---
 title: 'Assignment 2: Almond Yield'
-author: "Taylor Cook"
-date: "2025-04-08"
-output: pdf_document
+author: "Taylor Cook and Kelsey Warren"
+date: "2025-04-014"
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
