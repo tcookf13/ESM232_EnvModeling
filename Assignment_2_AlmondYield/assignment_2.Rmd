@@ -107,8 +107,8 @@ mean(yield_results$yield_anomaly, na.rm = TRUE)
 
 # Create a plot of the yield anomaly over the years
 ggplot(yield_results, aes(x = year, y = yield_anomaly)) +
-  geom_line(color = "blue") +
-  geom_point(color = "red") +
+  geom_line(color = "lightblue") +
+  geom_point(color = "darkred") +
   labs(title = "Almond Yield Anomaly (1988-2010)",
        x = "Year",
        y = "Yield Anomaly (ton acre^-1)") +
