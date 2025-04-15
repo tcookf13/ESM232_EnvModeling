@@ -1,5 +1,8 @@
 ---
 title: "Informal Sensitivity Analysis Part 2"
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -13,14 +16,13 @@ library(ggpubr)
 library(here)
 ```
 
-
 # Sensitivity Analysis with *ethresh*
 
-* Assume +-15% uncertainty in *ethresh* parameter
+-   Assume +-15% uncertainty in *ethresh* parameter
 
-* Default value from the function is 10,000
+-   Default value from the function is 10,000
 
-* Code so that its easy to change
+-   Code so that its easy to change
 
 ```{r ethresh}
 
@@ -81,27 +83,21 @@ p2 <- ggplot(mean_elect, aes(ethresh, mean)) +
 ggarrange(p1, p2)
 ```
 
-
-
-
-
 # Combined sensivitivity analysis
 
-* *eff*
+-   *eff*
 
-* *ethresh*
+-   *ethresh*
 
-Sample from both of them - each time we run the model we vary
-both of the parameters
-
-
+Sample from both of them - each time we run the model we vary both of
+the parameters
 
 # Combined parameter sensitivity
 
 Two possible approaches
 
-* *for*  
-* *pmap* from purrr
+-   *for*\
+-   *pmap* from purrr
 
 # using *pmap*
 
@@ -154,8 +150,8 @@ colnames(annual_elect) <- "year"
 annual_elect$elect <- tmp$annual$elect
 ```
 
-
 # Using a *For* Loop
+
 ```{r}
 # using a for loop
 # start by creating a data structures to hold results, separate
@@ -194,25 +190,29 @@ ggplot(tmp, aes(as.factor(year), value)) +
 
 # Code for putting models together
 
-To start - lets create what we need to compute net present value of power generated for multiple years 
+To start - lets create what we need to compute net present value of
+power generated for multiple years
 
-* compute_profit_frompower.R
+-   compute_profit_frompower.R
 
-We will use output from our solarpv function as input into a function that estimates profit given a price - and also 'calls' another function to compute net present value
+We will use output from our solarpv function as input into a function
+that estimates profit given a price - and also 'calls' another function
+to compute net present value
 
-* compute_NPV 
-    * inputs: value, time, discount rate
-    
-    * output  net present value of input value provide as some time in the future
+-   compute_NPV
 
-* compute_profit_frompower
-    
-    * inputs: energy, year (energy was produced in) price, discount rate
-    * outputs: single dataframe with columns for
-                    * energy
-                    * year
-                    * net (profit from energy in that year)
-                    * netpre (net present value of that profit)
+    -   inputs: value, time, discount rate
+
+    -   output net present value of input value provide as some time in
+        the future
+
+-   compute_profit_frompower
+
+    -   inputs: energy, year (energy was produced in) price, discount
+        rate
+    -   outputs: single dataframe with columns for \* energy \* year \*
+        net (profit from energy in that year) \* netpre (net present
+        value of that profit)
 
 ```{r valuep}
 source(here("R", "compute_NPV.R"))
@@ -239,16 +239,17 @@ ggplot(profit_solar, aes(as.factor(year), netpre, group = year)) +
   labs(y = "Profit in current $", x = "Year")
 ```
 
-
 # Putting it all together
 
-- Recall our function that computes hydro power
+-   Recall our function that computes hydro power
 
--  lets add both of our functions (hydro and solar power), together with computing profit and sensitivity analysis to create a full picture of power options
+-   lets add both of our functions (hydro and solar power), together
+    with computing profit and sensitivity analysis to create a full
+    picture of power options
 
-
-Notice that we can 're-use' our functions such as **compute_profit_frompower** for both sources of power
-(such as our reservoir power model) to build out our complete model
+Notice that we can 're-use' our functions such as
+**compute_profit_frompower** for both sources of power (such as our
+reservoir power model) to build out our complete model
 
 ```{r reuse}
 # rerun 'sampling' in using_data_with_functions.Rmd. above to get results from our reserovir model
