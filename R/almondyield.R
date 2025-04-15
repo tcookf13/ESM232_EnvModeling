@@ -20,7 +20,7 @@
 
 almondyield <- function(year, clim) {
   # Define the coefficients for the model
-  coeffs <- c(0.015, -0.0046, -0.07, 0.0043, 0.28)
+  coeffs <- c(-0.015, -0.0046, -0.07, 0.0043, 0.28)
   
   
   # CLIMATE DATA PREP
