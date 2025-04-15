@@ -1,0 +1,20 @@
+---
+title: "Assignment_3_Almond_Profit"
+author: "Kelsey Warren and Taylor Cook"
+date: "2025-04-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ESM 232 Assignment 3: Almond Yield & Profit
+
+Load packages
+
+```{r}
+library(tidyverse)
+library(here)
+library(purrr)
+```
