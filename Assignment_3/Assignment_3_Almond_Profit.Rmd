@@ -1,5 +1,6 @@
+# ESM 232 Assignment 3: Almond Yield & Profit
+
 ---
-title: "Assignment_3_Almond_Profit"
 author: "Kelsey Warren and Taylor Cook"
 date: "2025-04-15"
 output: html_document
@@ -9,8 +10,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# ESM 232 Assignment 3: Almond Yield & Profit
-
 Load packages
 
 ```{r}
@@ -18,3 +17,79 @@ library(tidyverse)
 library(here)
 library(purrr)
 ```
+
+#1. Develop a profit model for your almond yield
+
+- Use your imagination to think about what would make sense
+- Make sure you include parameters
+- You could assume a baseline profit and then adjust according to the anomaly
+
+
+```{r}
+#load almond yield data
+clim <- read.table(here("data/clim.txt"), header = TRUE, sep = "", strip.white = TRUE)
+
+source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almondyield.R"))
+source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almond_profit.R"))
+
+```
+
+
+# 2. Apply the profit model to your almond yield model
+
+- There are many ways to combine the almond yield and profit functions; you can have the profit function "call"/use the almond yield function; or create a wrapper function that calls them in sequence (first the almond yield and then the profit function)
+
+
+
+```{r}
+# IDK IF THIS PART IS RIGHT!! Need to dig into it more
+
+# Wrapper function to calculate almond profit by first calculating the yield anomaly
+
+almond_profit_wrapper <- function(df, month, acres = 500, baseline_profit = 4000, 
+                                  price_per_ton = 6000, base_water_cost = 200) {
+  
+  # Step 1: Calculate the yield anomaly using the almondyield function
+  yield_anomaly <- almondyield(year = unique(df$year), clim = df)
+  
+  # Step 2: Calculate the profit using the almond_profit function
+  profit <- almond_profit(df = df, month = month, acres = acres, 
+                          baseline_profit = baseline_profit, 
+                          price_per_ton = price_per_ton, 
+                          base_water_cost = base_water_cost)
+  
+  # Return the profit calculated
+  return(profit)
+}
+
+```
+
+
+
+# 3. Perform  a simple informal sensitivity analysis of almond yield profit using at least 2 parameters
+
+```{r}
+
+```
+
+
+# 4. Create 2 graphs
+    - one that shows yield anomaly for each year, accounting for uncertainty in the parameters
+    - one that show how yield anomaly in general varies with your parameters
+
+
+```{r}
+
+```
+
+
+
+
+# 5. Write a short paragraph (in a Quatro document) to summarize you interpretation of your model results (e.g what do 'take away' from your model and sensitivity analysis)
+
+
+
+
+
+
+
