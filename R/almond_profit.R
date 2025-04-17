@@ -2,7 +2,8 @@
 #'
 #' Calculate total almond profit based on yield anomaly and water costs
 #'
-#' @param df A dataframe with columns: year, month, tmin_c, precip_mm
+#' @param yield_anomaly the yield anomaly (ton/acre) from the almondyield() function
+#' @param clim the temperature and precip data frame
 #' @param month Numeric value for the target month (e.g. 2 for February)
 #' @param acres Number of acres being farmed (default = 500)
 #' @param baseline_profit Baseline profit per acre in a normal year (default = 4000)
@@ -18,9 +19,9 @@
 almond_profit <- function(yield_anomaly, clim, acres = 500, baseline_profit = 4000, 
                           price_per_ton = 6000, base_water_cost = 200) {
   
+
   # Calculate profit per acre
   profit_per_acre <- baseline_profit + (yield_anomaly * price_per_ton * acres)
-  
   
   
   # Adjust water cost if P1 is low (if P1 < 100 mm, water cost increases, otherwise, water cost = baseline)

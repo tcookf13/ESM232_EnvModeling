@@ -43,26 +43,12 @@ source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almond_wrappe
 # Wrapper function to calculate almond profit by first calculating the yield anomaly
 # Note that our updated almondyield() function is designed to calcualte yield in a chosen single year at a time, rather than for the entire time period.
 # This wrapper function was already loaded above, but showing the code here for the example year 2000
-
-almond_wrapper <- function(year = 2000, clim = clim) {
-  
-  # Step 1: Calculate the yield anomaly using the almondyield function
-  yield_anomaly <- almondyield(year = 2000, clim = clim)
-  
-  # Step 2: Create a dataframe to store results (year studied, yield anomaly, and profit)
-  profit_df <- data.frame(year = year, "yield anomaly" = yield_anomaly, profit = NA_real_)
-  
-  # Step 3: Calculate the profit using the almond_profit function and fill the profit_df data frame
-  profit_df$profit <- almond_profit(yield_anomaly, clim, acres = 500, baseline_profit = 4000, 
-                          price_per_ton = 6000, base_water_cost = 200)
-  
-  # Return the profit calculated
-  return(profit_df)
-}
+all_years = c(1989:2010)
+almond_wrapper(years = all_years, clim = clim) 
 
 
 # add results to a data frame in global environment
-profit_df_2000 <- almond_profit_wrapper(2000, clim)
+profit_df_2000 <- almond_profit_wrapper(all_years, clim)
 
 ```
 

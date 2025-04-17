@@ -28,7 +28,6 @@ almondyield <- function(year, clim) {
   feb_data <- clim[clim$month == 2 & clim$year == year, ]
   Tn2 <- mean(feb_data$tmin_c, na.rm = TRUE)
 
-  
   # january data for P1 (precip for Jan)
   jan_data <- clim[clim$month == 1 & clim$year == year, ]
   P1 <- sum(jan_data$precip, na.rm = TRUE)
@@ -41,9 +40,9 @@ almondyield <- function(year, clim) {
     stop("The 'coeffs' vector must have exactly 5 coefficients.")
   }
   # error checking for Feb minimum temperature (C)
-  Tn2 = ifelse( (Tn2 < 50), Tn2, return("Caution: abnormally high minimum temperature"))
+  Tn2 = ifelse( (Tn2 < 50), Tn2, stop("Caution: abnormally high minimum temperature"))
   # error checking for Jan precip (mm)
-  P1 = ifelse( (P1 < 15000), P1, return("Caution: abnormally high precipitation"))
+  P1 = ifelse( (P1 < 15000), P1, stop("Caution: abnormally high precipitation"))
   
   
   
