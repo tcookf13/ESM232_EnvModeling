@@ -121,26 +121,28 @@ total_profit_df <- cbind.data.frame(
 ```{r graphs}
 
 
-################ code from InformalSensitivity2.Rmd: ################
+# Plot that show how yield anomaly in general varies with your parameters
 
+# plot 1: with price_per_ton as color
 
-# plot - pick one of the 2 parameter as a color
-
-plot_1 <- ggplot(total_profit_df, aes(baseline_profit, mean, col = eff)) +
+plot_1 <- ggplot(total_profit_df, aes(baseline_profit, total_profit, col = price_per_ton)) +
   geom_point(cex = 2) +
-  labs(y = "Mean Annual Electricity W", x = "Threshold Radiation (kJ/m2)  \n above which energy production is more efficient")
-plot_2 <- ggplot(mean_elect, aes(eff, mean, col = ethresh)) +
+  labs(y = "Total Profit ($)", x = "Baseline Profit ($)") +
+    scale_color_gradient(low = "purple", high = "yellow") 
+plot_1
+
+# plot 2: with baseline_profit as color
+plot_2 <- ggplot(total_profit_df, aes(price_per_ton, total_profit, col = baseline_profit)) +
   geom_point(cex = 2) +
-  labs(y = "Mean Annual Electricity W", x = "Efficiency")
-ggarrange(p1, p2)
+  labs(y = "Total Profit ($)", x = "Price per Ton ($/ton)") +
+    scale_color_gradient(low = "purple", high = "yellow") 
+plot_2
 
-# what do we learn from this
+# view plots side by side
+ggarrange(plot_1, plot_2)
 
-# extract annual
-tmp <- map_df(results, `[`, c("annual"))
-annual_elect <- as.data.frame(tmp$annual$year)
-colnames(annual_elect) <- "year"
-annual_elect$elect <- tmp$annual$elect
+
+# Plot that shows yield anomaly for each year, accounting for uncertainty in the parameters
 
 
 ```
