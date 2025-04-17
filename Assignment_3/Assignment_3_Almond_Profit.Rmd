@@ -41,6 +41,7 @@ source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almond_wrappe
 
 ```{r wrapper}
 # Wrapper function to calculate almond profit by first calculating the yield anomaly
+# Note that our updated almondyield() function is designed to calcualte yield in a chosen single year at a time, rather than for the entire time period.
 # This wrapper function was already loaded above, but showing the code here for the example year 2000
 
 almond_wrapper <- function(year = 2000, clim = clim) {
@@ -68,6 +69,29 @@ profit_df_2000 <- almond_profit_wrapper(2000, clim)
 # 3. Perform a simple informal sensitivity analysis of almond yield profit using at least 2 parameters
 
 ```{r}
+# informal sensitivity analysis for year 2000
+# generate sample data of uncertainty in parameter
+# using 10% uncertainty in baseline_profit
+deviation = 0.10
+base_prof = 4000
+baseline_profit_u<- runif(
+  min = base_prof - deviation * base_prof,
+  max = base_prof + deviation * base_prof, n = 20)
+  
+# using 10% uncertainty in price_per_ton
+base_price = 6000
+price_per_ton_u<- runif(
+  min = base_price - deviation * base_price,
+  max = base_price + deviation * base_price, n = 20)
+
+# extract yield anomaly for year 2000
+ya_2000 <- yield_results[yield_results$year == 2000, ]
+  
+  
+# run the almond_profit() model using parameter uncertainty data generated above
+almond_profit(yield_anomaly = ya_2000, clim, acres = 500, baseline_profit = baseline_profit_u, price_per_ton = price_per_ton_u, base_water_cost = 200) 
+  
+
 
 
 ```
@@ -83,4 +107,4 @@ profit_df_2000 <- almond_profit_wrapper(2000, clim)
 
 ```
 
-# 5. Write a short paragraph (in a Quatro document) to summarize you interpretation of your model results (e.g what do 'take away' from your model and sensitivity analysis)
+# 5. Write a short paragraph (in a Quarto document) to summarize you interpretation of your model results (e.g what do 'take away' from your model and sensitivity analysis)
