@@ -77,10 +77,10 @@ profit_df_2000 <- almond_profit_wrapper(2000, clim)
 # using 10% uncertainty in baseline_profit
 nsamples = 200
 deviation = 0.10
-base_prof = 4000
+base_baseline_prof = 4000
 baseline_profit <- runif(
-  min = base_prof - deviation * base_prof,
-  max = base_prof + deviation * base_prof, n = nsamples)
+  min = base_baseline_prof - deviation * base_baseline_prof,
+  max = base_baseline_prof + deviation * base_baseline_prof, n = nsamples)
   
 # using 10% uncertainty in price_per_ton
 base_price = 6000
@@ -103,8 +103,11 @@ profit_sens_results[1]
 length(profit_sens_results)
 
 # create a data frame to store the parameters and profit results
-total_profit_df  <- cbind.data.frame(profit_sens_results, params_u)
-
+# but first unlist the profit results so they become a proper numeric vector
+total_profit_df <- cbind.data.frame(
+  total_profit = unlist(profit_sens_results),
+  params_u
+)
 
 ```
 
@@ -121,12 +124,12 @@ total_profit_df  <- cbind.data.frame(profit_sens_results, params_u)
 ################ code from InformalSensitivity2.Rmd: ################
 
 
-# plot - pick on of the 2 parameter as a color
+# plot - pick one of the 2 parameter as a color
 
-p1 <- ggplot(mean_elect, aes(ethresh, mean, col = eff)) +
+plot_1 <- ggplot(total_profit_df, aes(baseline_profit, mean, col = eff)) +
   geom_point(cex = 2) +
   labs(y = "Mean Annual Electricity W", x = "Threshold Radiation (kJ/m2)  \n above which energy production is more efficient")
-p2 <- ggplot(mean_elect, aes(eff, mean, col = ethresh)) +
+plot_2 <- ggplot(mean_elect, aes(eff, mean, col = ethresh)) +
   geom_point(cex = 2) +
   labs(y = "Mean Annual Electricity W", x = "Efficiency")
 ggarrange(p1, p2)
