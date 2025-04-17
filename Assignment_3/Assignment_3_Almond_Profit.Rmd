@@ -28,6 +28,7 @@ library(purrr)
 #load almond yield data
 clim <- read.table(here("data/clim.txt"), header = TRUE, sep = "", strip.white = TRUE)
 
+# load functions to calculate almond yield, almond profit, and the wrapper function to bring them together
 source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almondyield.R"))
 source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almond_profit.R"))
 source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almond_wrapper.R"))
