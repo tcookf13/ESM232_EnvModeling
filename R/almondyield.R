@@ -25,12 +25,12 @@ almondyield <- function(year, clim) {
   
   # CLIMATE DATA PREP
   # february data for Tn2 (min temp for Feb)
-  feb_data <- clim[clim$month == 2, ]
+  feb_data <- clim[clim$month == 2 & clim$year == year, ]
   Tn2 <- mean(feb_data$tmin_c, na.rm = TRUE)
 
   
   # january data for P1 (precip for Jan)
-  jan_data <- clim[clim$month == 1, ]
+  jan_data <- clim[clim$month == 1 & clim$year == year, ]
   P1 <- sum(jan_data$precip, na.rm = TRUE)
   
   

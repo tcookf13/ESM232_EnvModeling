@@ -30,6 +30,7 @@ clim <- read.table(here("data/clim.txt"), header = TRUE, sep = "", strip.white =
 
 source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almondyield.R"))
 source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almond_profit.R"))
+source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almond_wrapper.R"))
 
 ```
 
@@ -39,6 +40,7 @@ source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almond_profit
 
 ```{r wrapper}
 # Wrapper function to calculate almond profit by first calculating the yield anomaly
+# This wrapper function was already loaded above, but showing the code here for the example year 2000
 
 almond_wrapper <- function(year = 2000, clim = clim) {
   
@@ -65,6 +67,7 @@ profit_df_2000 <- almond_profit_wrapper(2000, clim)
 # 3. Perform a simple informal sensitivity analysis of almond yield profit using at least 2 parameters
 
 ```{r}
+
 
 ```
 
