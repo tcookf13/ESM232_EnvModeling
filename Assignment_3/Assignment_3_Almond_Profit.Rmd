@@ -92,7 +92,7 @@ length(profit_sens_results)
 # but first unlist the profit results so they become a proper numeric vector
 total_profit_df <- cbind.data.frame(
   total_profit = unlist(profit_sens_results),
-  params_u
+  params_u,
 )
 
 ```
@@ -107,7 +107,7 @@ total_profit_df <- cbind.data.frame(
 ```{r graphs}
 
 
-# Plot that show how yield anomaly in general varies with your parameters
+### Plot that show how yield anomaly in general varies with your parameters
 
 # plot 1: with price_per_ton as color
 
@@ -128,7 +128,9 @@ plot_2
 ggarrange(plot_1, plot_2)
 
 
-# Plot that shows yield anomaly for each year, accounting for uncertainty in the parameters
+
+
+### Plot that shows yield anomaly for each year, accounting for uncertainty in the parameters
 
 
 ```
