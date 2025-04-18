@@ -26,7 +26,7 @@ library(purrr)
 
 ```{r load_data}
 #load almond yield data
-clim <- read.table(here("data/clim.txt"), header = TRUE, sep = "", strip.white = TRUE)
+clim <- read.table(here("~/Desktop/232 Modeling/Almond_Yield_HW/clim.txt"), header = TRUE, sep = "", strip.white = TRUE)
 
 # load functions to calculate almond yield, almond profit, and the wrapper function to bring them together
 source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almondyield.R"))
@@ -48,7 +48,8 @@ almond_wrapper(years = all_years, clim = clim)
 
 
 # add results to a data frame in global environment
-profit_df_2000 <- almond_profit_wrapper(all_years, clim)
+
+profit_df <- almond_wrapper(all_years, clim)
 
 ```
 
@@ -78,12 +79,12 @@ price_per_ton <- runif(
 params_u <- cbind.data.frame(baseline_profit, price_per_ton)
 
 # extract yield anomaly for year 2000
-ya_2000 <- yield_results$yield_anomaly[yield_results$year == 2000]
+ya <- profit_df$yield_anomaly[profit_df$year == all_years]
 
 # run the almond_profit() model using parameter uncertainty data generated above using pmap()
 # takes function name and then names of all parameters that don't change
 profit_sens_results <- params_u %>% pmap(almond_profit,
-  yield_anomaly = ya_2000, clim = clim, acres = 500, base_water_cost = 200)
+  yield_anomaly = ya, clim = clim, acres = 500, base_water_cost = 200)
 
 profit_sens_results[1]
 length(profit_sens_results)
