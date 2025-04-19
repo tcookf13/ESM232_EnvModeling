@@ -122,9 +122,8 @@ merged_df <- merge(profit_df, total_profit_df, by = "year")
 plot_1 <- ggplot(merged_df, aes(x = year, y = yield_anomaly, col = price_per_ton)) +
   geom_point(cex = 2) + 
   labs(y = "Yield Anomaly (ton/acre)", x = "Year") +
-  scale_color_gradient(low = "blue", high = "red") +
-  theme_minimal() +
-  theme(legend.title = element_blank())
+  scale_color_gradient(low = "blue", high = "red", name = "Price Per Ton ($)") +
+  theme_minimal()
 plot_1
 
 
@@ -132,18 +131,18 @@ plot_1
 plot_2 <- ggplot(merged_df, aes(x = year, y = total_profit, col = baseline_profit)) +
   geom_point(cex = 2) + 
   labs(y = "Total Profit ($)", x = "Year") +
-  scale_color_gradient(low = "purple", high = "yellow") +
-  theme_minimal() +
-  theme(legend.title = element_blank())
+  scale_color_gradient(low = "purple", high = "yellow", name = "Baseline Profit ($)") +
+  theme_minimal()
 plot_2
 
 # view plots side by side
 ggarrange(plot_1, plot_2)
+
 ```
 
 # 5. Write a short paragraph (in a Quarto document) to summarize you interpretation of your model results (e.g what do 'take away' from your model and sensitivity analysis)
 
-The almond yield and profit model indicates how uncertainties in key parameters, such as baseline profit and price per ton, influence almond production and total profit over time. The first plot, showing yield anomaly across years with uncertainty, demonstrates that small fluctuations in price per ton can significantly affect the yield, especially in years with extreme climate conditions. The color gradient helps visualize the sensitivity of yield anomalies to price changes, where a higher price per ton is associated with greater yield anomalies, suggesting more significant profitability during favorable climate years.
+The almond yield and profit model indicates how uncertainties in key parameters we chose, baseline profit and price per ton, influence almond production and total profit over time. The first plot, showing yield anomaly across years with uncertainty, demonstrates that small fluctuations in price per ton can significantly affect the yield, especially in years with extreme climate conditions. The color gradient helps visualize the sensitivity of yield anomalies to price changes, where a higher price per ton is associated with greater yield anomalies, suggesting more significant profitability during favorable climate years.
 
 The second plot, depicting total profit over time with uncertainty, highlights the role of baseline profit in determining total profit variability. As expected, fluctuations in baseline profit are closely tied to the total profit outcomes, with higher baseline profits leading to greater total profit. The results from the sensitivity analysis show that while yield anomaly has the largest effect on profitability in certain years, baseline profit and price per ton both contribute to the overall variability. These findings suggest that understanding the potential fluctuations in key parameters is crucial for predicting the economic viability of almond farming under changing climate conditions and market prices.
 
