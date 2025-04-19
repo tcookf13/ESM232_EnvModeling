@@ -39,5 +39,5 @@ almond_profit <- function(yield_anomaly, clim, acres = 500, baseline_profit = 40
   net_profit_per_acre <- profit_per_acre - water_cost
   total_profit <- acres * net_profit_per_acre
   
-  return(list(total_profit))
+  return(total_profit)
 }

@@ -16,6 +16,7 @@ Load packages
 library(tidyverse)
 library(here)
 library(purrr)
+library(ggpubr)
 ```
 
 # 1. Develop a profit model for your almond yield
@@ -26,7 +27,7 @@ library(purrr)
 
 ```{r load_data}
 #load almond yield data
-clim <- read.table(here("~/Desktop/232 Modeling/Almond_Yield_HW/clim.txt"), header = TRUE, sep = "", strip.white = TRUE)
+clim <- read.table(here("data/clim.txt"), header = TRUE, sep = "", strip.white = TRUE)
 
 # load functions to calculate almond yield, almond profit, and the wrapper function to bring them together
 source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almondyield.R"))
@@ -61,6 +62,7 @@ profit_df <- almond_wrapper(all_years, clim)
 
 # informal sensitivity analysis for year 2000
 # generate sample data of uncertainty in parameter
+
 # using 10% uncertainty in baseline_profit
 nsamples = 200
 deviation = 0.10
@@ -93,7 +95,7 @@ length(profit_sens_results)
 # but first unlist the profit results so they become a proper numeric vector
 total_profit_df <- cbind.data.frame(
   total_profit = unlist(profit_sens_results),
-  params_u,
+  params_u
 )
 
 ```
@@ -107,33 +109,48 @@ total_profit_df <- cbind.data.frame(
 
 ```{r graphs}
 
+# Add year information to `total_profit_df` by repeating the `year` values from `profit_df`
+total_profit_df$year <- rep(profit_df$year, each = length(baseline_profit))
 
-### Plot that show how yield anomaly in general varies with your parameters
 
-# plot 1: with price_per_ton as color
+# Merge the two data frames by the year column
+merged_df <- merge(profit_df, total_profit_df, by = "year")
 
-plot_1 <- ggplot(total_profit_df, aes(baseline_profit, total_profit, col = price_per_ton)) +
-  geom_point(cex = 2) +
-  labs(y = "Total Profit ($)", x = "Baseline Profit ($)") +
-    scale_color_gradient(low = "purple", high = "yellow") 
+
+
+# Plot 1: Yield Anomaly Over Time with uncertainty in parameters
+plot_1 <- ggplot(merged_df, aes(x = year, y = yield_anomaly, col = price_per_ton)) +
+  geom_point(cex = 2) + 
+  labs(y = "Yield Anomaly (ton/acre)", x = "Year") +
+  scale_color_gradient(low = "blue", high = "red") +
+  theme_minimal() +
+  theme(legend.title = element_blank())
 plot_1
 
-# plot 2: with baseline_profit as color
-plot_2 <- ggplot(total_profit_df, aes(price_per_ton, total_profit, col = baseline_profit)) +
-  geom_point(cex = 2) +
-  labs(y = "Total Profit ($)", x = "Price per Ton ($/ton)") +
-    scale_color_gradient(low = "purple", high = "yellow") 
+
+# Plot 2: Total Profit over Time with uncertainty (colored by baseline_profit)
+plot_2 <- ggplot(merged_df, aes(x = year, y = total_profit, col = baseline_profit)) +
+  geom_point(cex = 2) + 
+  labs(y = "Total Profit ($)", x = "Year") +
+  scale_color_gradient(low = "purple", high = "yellow") +
+  theme_minimal() +
+  theme(legend.title = element_blank())
 plot_2
 
 # view plots side by side
 ggarrange(plot_1, plot_2)
-
-
-
-
-### Plot that shows yield anomaly for each year, accounting for uncertainty in the parameters
-
-
 ```
 
 # 5. Write a short paragraph (in a Quarto document) to summarize you interpretation of your model results (e.g what do 'take away' from your model and sensitivity analysis)
+
+The almond yield and profit model indicates how uncertainties in key parameters, such as baseline profit and price per ton, influence almond production and total profit over time. The first plot, showing yield anomaly across years with uncertainty, demonstrates that small fluctuations in price per ton can significantly affect the yield, especially in years with extreme climate conditions. The color gradient helps visualize the sensitivity of yield anomalies to price changes, where a higher price per ton is associated with greater yield anomalies, suggesting more significant profitability during favorable climate years.
+
+The second plot, depicting total profit over time with uncertainty, highlights the role of baseline profit in determining total profit variability. As expected, fluctuations in baseline profit are closely tied to the total profit outcomes, with higher baseline profits leading to greater total profit. The results from the sensitivity analysis show that while yield anomaly has the largest effect on profitability in certain years, baseline profit and price per ton both contribute to the overall variability. These findings suggest that understanding the potential fluctuations in key parameters is crucial for predicting the economic viability of almond farming under changing climate conditions and market prices.
+
+
+
+
+
+
+
+
