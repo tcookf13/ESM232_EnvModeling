@@ -54,13 +54,14 @@ profit_df <- almond_wrapper(all_years, clim)
 
 ```
 
+
 # 3. Perform a simple informal sensitivity analysis of almond yield profit using at least 2 parameters
 
 ```{r sensitivity}
 # NEED TO USE PMAP TO TEST PARAMETERS
 
 
-# informal sensitivity analysis for year 2000
+# informal sensitivity analysis for all years
 # generate sample data of uncertainty in parameter
 
 # using 10% uncertainty in baseline_profit
@@ -77,19 +78,30 @@ price_per_ton <- runif(
   min = base_price - deviation * base_price,
   max = base_price + deviation * base_price, n = nsamples)
 
-# combine the uncertain parameter values into a data frame
-params_u <- cbind.data.frame(baseline_profit, price_per_ton)
 
-# extract yield anomaly for year 2000
+# using 10% uncertainty in acres
+base_acres <- 500
+acres <- runif(nsamples, 
+               min = base_acres - deviation * base_acres, 
+               max = base_acres + deviation * base_acres)
+
+# combine the uncertain parameter values into a data frame
+params_u <- cbind.data.frame(baseline_profit, price_per_ton, acres)
+
+
+# extract yield anomaly for all years
 ya <- profit_df$yield_anomaly[profit_df$year == all_years]
 
 # run the almond_profit() model using parameter uncertainty data generated above using pmap()
 # takes function name and then names of all parameters that don't change
-profit_sens_results <- params_u %>% pmap(almond_profit,
-  yield_anomaly = ya, clim = clim, acres = 500, base_water_cost = 200)
+profit_sens_results <- params_u %>% 
+  pmap(almond_profit,
+    yield_anomaly = ya, 
+    clim = clim,
+    base_water_cost = 200)
 
-profit_sens_results[1]
-length(profit_sens_results)
+#profit_sens_results[1]
+#length(profit_sens_results)
 
 # create a data frame to store the parameters and profit results
 # but first unlist the profit results so they become a proper numeric vector
@@ -117,24 +129,25 @@ total_profit_df$year <- rep(profit_df$year, each = length(baseline_profit))
 merged_df <- merge(profit_df, total_profit_df, by = "year")
 
 
+merged_df$year <- as.numeric(as.character(merged_df$year))
 
-# Plot 1: Yield Anomaly Over Time with uncertainty in parameters
+
+# Plot 1: Yield Anomaly Over Time with uncertainty in profit parameter: price per ton
 plot_1 <- ggplot(merged_df, aes(x = year, y = yield_anomaly, col = price_per_ton)) +
-  geom_point(cex = 2) + 
+  # geom_point(cex = 2) +  
+  geom_boxplot() +
   labs(y = "Yield Anomaly (ton/acre)", x = "Year") +
   scale_color_gradient(low = "blue", high = "red", name = "Price Per Ton ($)") +
   theme_minimal()
 plot_1
 
 
-# Plot 2: Total Profit over Time with uncertainty (colored by baseline_profit)
-plot_2 <- ggplot(merged_df, aes(x = year, y = total_profit, col = baseline_profit)) +
-  geom_point(cex = 2) + 
-  labs(y = "Total Profit ($)", x = "Year") +
-  scale_color_gradient(low = "purple", high = "yellow", name = "Baseline Profit ($)") +
+# Plot 2: Yield over time with uncertainty by acres
+plot_2 <- ggplot(merged_df, aes(x = factor(year), y = total_profit)) +
+  geom_boxplot(fill = "lightgreen", outlier.colour = "gray50", outlier.alpha = 0.4) + 
+  labs(y = "Total Profit ($)", x = "Year", title = "Total Profit Over Time with Uncertainty in Acres") +
   theme_minimal()
 plot_2
-
 # view plots side by side
 ggarrange(plot_1, plot_2)
 

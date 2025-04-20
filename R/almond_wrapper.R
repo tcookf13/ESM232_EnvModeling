@@ -108,7 +108,3 @@ almond_wrapper <- function(years, clim) {
 
 
 
-
-
-
-
