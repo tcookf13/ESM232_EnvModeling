@@ -21,7 +21,7 @@ almond_profit <- function(yield_anomaly, clim, acres = 500, baseline_profit = 40
   
 
   # Calculate profit per acre
-  profit_per_acre <- baseline_profit + (yield_anomaly * price_per_ton * acres)
+  profit_per_acre <- baseline_profit + (yield_anomaly * price_per_ton)
   
   
   # Adjust water cost if P1 is low (if P1 < 100 mm, water cost increases, otherwise, water cost = baseline)
