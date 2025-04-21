@@ -110,6 +110,52 @@ total_profit_df <- cbind.data.frame(
 ```
 
 
+#3b Sensityive on Almond Yield Anomaly
+
+```{r}
+# informal sensitivity analysis for all years
+# generate sample data of uncertainty in parameter
+
+# Base coefficients from Lobell et al. (2006)
+base_coeffs <- c(-0.015, -0.0046, -0.07, 0.0043, 0.28)
+deviation <- 0.10
+nsamples <- 1000
+
+nsamples = 200
+deviation = 0.10
+
+
+# Create a function to randomly sample coefficients within ±10%
+sample_coeffs <- function(base, dev) {
+  runif(length(base), base * (1 - dev), base * (1 + dev))
+}
+
+# combine the uncertain parameter values into a data frame
+coeffs_u <- map(1:nsamples, ~ sample_coeffs(base_coeffs, deviation))
+
+# run the almond_yield() model using parameter uncertainty data generated above using pmap()
+# takes function name and then names of all parameters that don't change
+yield_sens_results <- coeffs_u %>% 
+  pmap(almondyield,
+    clim = clim,
+    baseline_yield = 2.5,
+    years = all_years)
+
+# create a data frame to store the parameters and profit results
+# but first unlist the profit results so they become a proper numeric vector
+yield_anomaly_df <- cbind.data.frame(
+  yield_anomaly = unlist(yield_sens_results),
+  coeffs_u
+)
+
+
+```
+
+
+
+
+
+
 # 4. Create 2 graphs
 
 ```         
