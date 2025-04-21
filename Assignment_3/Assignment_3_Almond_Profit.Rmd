@@ -64,14 +64,10 @@ profit_df <- almond_wrapper(all_years, clim)
 # informal sensitivity analysis for all years
 # generate sample data of uncertainty in parameter
 
-# using 10% uncertainty in baseline_profit
+
 nsamples = 200
 deviation = 0.10
-base_baseline_prof = 4000
-baseline_profit <- runif(
-  min = base_baseline_prof - deviation * base_baseline_prof,
-  max = base_baseline_prof + deviation * base_baseline_prof, n = nsamples)
-  
+
 # using 10% uncertainty in price_per_ton
 base_price = 6000
 price_per_ton <- runif(
@@ -86,7 +82,7 @@ acres <- runif(nsamples,
                max = base_acres + deviation * base_acres)
 
 # combine the uncertain parameter values into a data frame
-params_u <- cbind.data.frame(baseline_profit, price_per_ton, acres)
+params_u <- cbind.data.frame(price_per_ton, acres)
 
 
 # extract yield anomaly for all years
@@ -98,6 +94,7 @@ profit_sens_results <- params_u %>%
   pmap(almond_profit,
     yield_anomaly = ya, 
     clim = clim,
+    baseline_profit = 4000,
     base_water_cost = 200)
 
 #profit_sens_results[1]
@@ -106,11 +103,12 @@ profit_sens_results <- params_u %>%
 # create a data frame to store the parameters and profit results
 # but first unlist the profit results so they become a proper numeric vector
 total_profit_df <- cbind.data.frame(
-  total_profit = unlist(profit_sens_results),
+  profit_sensitivity = unlist(profit_sens_results),
   params_u
 )
 
 ```
+
 
 # 4. Create 2 graphs
 
@@ -121,43 +119,43 @@ total_profit_df <- cbind.data.frame(
 
 ```{r graphs}
 
-# Add year information to `total_profit_df` by repeating the `year` values from `profit_df`
-total_profit_df$year <- rep(profit_df$year, each = length(baseline_profit))
-
+# Add year information to total_profit_df
+total_profit_df$year <- rep(all_years, each = nsamples)
 
 # Merge the two data frames by the year column
 merged_df <- merge(profit_df, total_profit_df, by = "year")
 
-
+# Convert the 'year' column to numeric
 merged_df$year <- as.numeric(as.character(merged_df$year))
 
 
-# Plot 1: Yield Anomaly Over Time with uncertainty in profit parameter: price per ton
-plot_1 <- ggplot(merged_df, aes(x = year, y = yield_anomaly, col = price_per_ton)) +
-  # geom_point(cex = 2) +  
-  geom_boxplot() +
+
+
+# Plot 1: Almond yield Anomaly Over Time with uncertainty in price per ton
+plot_1 <- ggplot(merged_df, aes(x = factor(year), y = yield_anomaly, col = price_per_ton, group = year)) +
+  geom_point() +
   labs(y = "Yield Anomaly (ton/acre)", x = "Year") +
   scale_color_gradient(low = "blue", high = "red", name = "Price Per Ton ($)") +
   theme_minimal()
 plot_1
 
 
-# Plot 2: Yield over time with uncertainty by acres
-plot_2 <- ggplot(merged_df, aes(x = factor(year), y = total_profit)) +
-  geom_boxplot(fill = "lightgreen", outlier.colour = "gray50", outlier.alpha = 0.4) + 
-  labs(y = "Total Profit ($)", x = "Year", title = "Total Profit Over Time with Uncertainty in Acres") +
+
+# Plot 2: Almond profits over time with uncertainty in price per ton
+plot_2 <- ggplot(merged_df, aes(x = factor(year), y = profit_sensitivity)) +
+  geom_point(color = "steelblue", alpha = 0.6) +  # scatter plot points
+  labs(y = "Total Profit ($)", x = "Year", title = "Total Profit Over Time with Uncertainty in Price Per Ton") +
   theme_minimal()
 plot_2
-# view plots side by side
-ggarrange(plot_1, plot_2)
+
 
 ```
 
 # 5. Write a short paragraph (in a Quarto document) to summarize you interpretation of your model results (e.g what do 'take away' from your model and sensitivity analysis)
 
-The almond yield and profit model indicates how uncertainties in key parameters we chose, baseline profit and price per ton, influence almond production and total profit over time. The first plot, showing yield anomaly across years with uncertainty, demonstrates that small fluctuations in price per ton can significantly affect the yield, especially in years with extreme climate conditions. The color gradient helps visualize the sensitivity of yield anomalies to price changes, where a higher price per ton is associated with greater yield anomalies, suggesting more significant profitability during favorable climate years.
+The almond yield and profit model demonstrates how uncertainties in key parameters, including acres and price per ton, influence almond production and total profit over time. Plot 1, showing yield anomaly across years with uncertainty in price per ton, illustrates that small fluctuations in price can significantly affect yield, especially in years with extreme climate conditions. The color gradient is supposed to visually represent the sensitivity of yield anomalies to price changes, with higher price per ton associated with greater yield anomalies, indicating more significant profitability in years with favorable climate conditions.
 
-The second plot, depicting total profit over time with uncertainty, highlights the role of baseline profit in determining total profit variability. As expected, fluctuations in baseline profit are closely tied to the total profit outcomes, with higher baseline profits leading to greater total profit. The results from the sensitivity analysis show that while yield anomaly has the largest effect on profitability in certain years, baseline profit and price per ton both contribute to the overall variability. These findings suggest that understanding the potential fluctuations in key parameters is crucial for predicting the economic viability of almond farming under changing climate conditions and market prices.
+Plot 2, which depicts total profit over time with uncertainty in price per ton, highlights how the variability in price impacts total profit. While fluctuations in baseline profit can play an important role, the scatter plot emphasizes how total profit is affected by the uncertainty in price per ton. The sensitivity analysis results show that while yield anomaly impacts profitability in certain years, price per ton contributes to the overall variability in total profit. These findings suggest that understanding the potential fluctuations in key parameters is critical for assessing the economic viability of almond farming under changing climate and market conditions.
 
 
 
