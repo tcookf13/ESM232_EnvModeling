@@ -1,10 +1,7 @@
 # ESM 232 Assignment 3: Almond Yield & Profit
 
----
-author: "Kelsey Warren and Taylor Cook"
-date: "2025-04-15"
-output: html_document
----
+### author: "Kelsey Warren and Taylor Cook"
+### date: "2025-04-21"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -19,7 +16,7 @@ library(purrr)
 library(ggpubr)
 ```
 
-# 1. Develop a profit model for your almond yield
+# Develop a profit model for your almond yield
 
 -   Use your imagination to think about what would make sense
 -   Make sure you include parameters
@@ -36,172 +33,86 @@ source(here("~/Bren MESM/ESM 232 ENV Modeling/ESM232_EnvModeling/R/almond_wrappe
 
 ```
 
-# 2. Apply the profit model to your almond yield model
 
--   There are many ways to combine the almond yield and profit functions; you can have the profit function "call"/use the almond yield function; or create a wrapper function that calls them in sequence (first the almond yield and then the profit function)
-
-```{r wrapper}
-# Wrapper function to calculate almond profit by first calculating the yield anomaly
-# Note that our updated almondyield() function is designed to calcualte yield in a chosen single year at a time, rather than for the entire time period.
-# This wrapper function was already loaded above, but showing the code here for the example year 2000
-all_years = c(1989:2010)
-almond_wrapper(years = all_years, clim = clim) 
-
-
-# add results to a data frame in global environment
-
-profit_df <- almond_wrapper(all_years, clim)
-
-```
-
-
-# 3. Perform a simple informal sensitivity analysis of almond yield profit using at least 2 parameters
-
-```{r sensitivity}
-# NEED TO USE PMAP TO TEST PARAMETERS
-
-
-# informal sensitivity analysis for all years
-# generate sample data of uncertainty in parameter
-
-
-nsamples = 200
-deviation = 0.10
-
-# using 10% uncertainty in price_per_ton
-base_price = 6000
-price_per_ton <- runif(
-  min = base_price - deviation * base_price,
-  max = base_price + deviation * base_price, n = nsamples)
-
-
-# using 10% uncertainty in acres
-base_acres <- 500
-acres <- runif(nsamples, 
-               min = base_acres - deviation * base_acres, 
-               max = base_acres + deviation * base_acres)
-
-# combine the uncertain parameter values into a data frame
-params_u <- cbind.data.frame(price_per_ton, acres)
-
-
-# extract yield anomaly for all years
-ya <- profit_df$yield_anomaly[profit_df$year == all_years]
-
-# run the almond_profit() model using parameter uncertainty data generated above using pmap()
-# takes function name and then names of all parameters that don't change
-profit_sens_results <- params_u %>% 
-  pmap(almond_profit,
-    yield_anomaly = ya, 
-    clim = clim,
-    baseline_profit = 4000,
-    base_water_cost = 200)
-
-#profit_sens_results[1]
-#length(profit_sens_results)
-
-# create a data frame to store the parameters and profit results
-# but first unlist the profit results so they become a proper numeric vector
-total_profit_df <- cbind.data.frame(
-  profit_sensitivity = unlist(profit_sens_results),
-  params_u
-)
-
-```
-
-
-#3b Sensityive on Almond Yield Anomaly
+# Sensitivity Analysis 
 
 ```{r}
-# informal sensitivity analysis for all years
-# generate sample data of uncertainty in parameter
-
-# Base coefficients from Lobell et al. (2006)
-base_coeffs <- c(-0.015, -0.0046, -0.07, 0.0043, 0.28)
-deviation <- 0.10
-nsamples <- 1000
-
-nsamples = 200
-deviation = 0.10
+# Generate the randomized inputs
+set.seed(100)
+# Number of samples (23 years * 100 iterations)
+n_samples <- 2300
+year <- rep(1988:2010, 100)  # 23 years * 100 iterations
 
 
-# Create a function to randomly sample coefficients within ±10%
-sample_coeffs <- function(base, dev) {
-  runif(length(base), base * (1 - dev), base * (1 + dev))
-}
+# Randomize for precipitation (mean = 200mm, sd = 40mm)
+precip <- rnorm(n = n_samples, mean = 400, sd = 40)
 
-# combine the uncertain parameter values into a data frame
-coeffs_u <- map(1:nsamples, ~ sample_coeffs(base_coeffs, deviation))
+# Randomize for minimum temperature (uniform distribution between 7 and 12°C)
+min_temp <- runif(n = n_samples, min = 15, max = 30)
 
-# run the almond_yield() model using parameter uncertainty data generated above using pmap()
-# takes function name and then names of all parameters that don't change
-yield_sens_results <- coeffs_u %>% 
-  pmap(almondyield,
-    clim = clim,
-    baseline_yield = 2.5,
-    years = all_years)
+# Randomize for acres (size of the farm, uniform distribution between 300 and 600 acres)
+acres <- runif(n = n_samples, min = 300, max = 600)
 
-# create a data frame to store the parameters and profit results
-# but first unlist the profit results so they become a proper numeric vector
-yield_anomaly_df <- cbind.data.frame(
-  yield_anomaly = unlist(yield_sens_results),
-  coeffs_u
-)
+# Create a data frame with randomized parameters (year, precipitation, minimum temperature)
+parms <- cbind.data.frame(year, precip, min_temp, acres)
 
+# Function to calculate almond yield and profit using the randomized parameters
+results <- parms %>% pmap(almond_wrapper)
+
+# Transform the results into a data frame containing yield, profit, and year
+output_df <- map_df(results, `[`, c('yield_anomaly', 'profit'))
+
+# Combine the results with the original parameters (year, precip, min_temp)
+final_df <- cbind.data.frame(output_df, parms)
+
+# Check the structure of the data
+head(final_df)
 
 ```
 
 
 
+# Create 2 graphs
 
-
-
-# 4. Create 2 graphs
-
-```         
-- one that shows yield anomaly for each year, accounting for uncertainty in the parameters
-- one that show how yield anomaly in general varies with your parameters
-```
 
 ```{r graphs}
 
-# Add year information to total_profit_df
-total_profit_df$year <- rep(all_years, each = nsamples)
 
-# Merge the two data frames by the year column
-merged_df <- merge(profit_df, total_profit_df, by = "year")
-
-# Convert the 'year' column to numeric
-merged_df$year <- as.numeric(as.character(merged_df$year))
-
-
-
-
-# Plot 1: Almond yield Anomaly Over Time with uncertainty in price per ton
-plot_1 <- ggplot(merged_df, aes(x = factor(year), y = yield_anomaly, col = price_per_ton, group = year)) +
-  geom_point() +
-  labs(y = "Yield Anomaly (ton/acre)", x = "Year") +
-  scale_color_gradient(low = "blue", high = "red", name = "Price Per Ton ($)") +
-  theme_minimal()
+# Plot 1: Boxplot for Almond profit by year
+plot_1 <- ggplot(final_df, aes(x = factor(year), y = profit)) +
+  geom_boxplot(fill = "steelblue") +  
+  labs(
+    title = "Almond Profit by Year",
+    x = "Year",
+    y = "Profit ($)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))  # Rotate x-axis labels for readability
 plot_1
 
+# Plot 2: Boxplot for Almond Yield by Year
+plot2 <- ggplot(final_df, aes(x = factor(year), y = yield_anomaly, group = year)) +
+  geom_boxplot(fill = "seagreen", alpha = 0.6, outlier.shape = NA) +  # Adjust boxplot appearance
+  scale_color_gradient(low = "purple", high = "orange", name = "Precipitation (mm)") +  # Precipitation gradient coloring
+  labs(
+    title = "Almond Yield Anomaly by Year",
+    x = "Year",
+    y = "Yield Anomaly (ton/acre)",
+    caption = "Variation driven by precipitation & temperature uncertainty"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for better readability
 
-
-# Plot 2: Almond profits over time with uncertainty in price per ton
-plot_2 <- ggplot(merged_df, aes(x = factor(year), y = profit_sensitivity)) +
-  geom_point(color = "steelblue", alpha = 0.6) +  # scatter plot points
-  labs(y = "Total Profit ($)", x = "Year", title = "Total Profit Over Time with Uncertainty in Price Per Ton") +
-  theme_minimal()
-plot_2
-
-
+# Display the plot
+plot2
 ```
 
 # 5. Write a short paragraph (in a Quarto document) to summarize you interpretation of your model results (e.g what do 'take away' from your model and sensitivity analysis)
 
-The almond yield and profit model demonstrates how uncertainties in key parameters, including acres and price per ton, influence almond production and total profit over time. Plot 1, showing yield anomaly across years with uncertainty in price per ton, illustrates that small fluctuations in price can significantly affect yield, especially in years with extreme climate conditions. The color gradient is supposed to visually represent the sensitivity of yield anomalies to price changes, with higher price per ton associated with greater yield anomalies, indicating more significant profitability in years with favorable climate conditions.
+The almond yield and profit model demonstrates how uncertainties in key parameters, including precipitation, temperature, and acres, influence almond production and total profit over time. Plot 1, which shows the almond profit by year, illustrates the significant impact of variability in climate factors (precipitation and minimum temperature) as well as farm size (acres) on profit. The boxplot reveals that while profits remain relatively stable across years, the spread of profits widens in years with extreme climate conditions or larger farm sizes. This variability underscores the sensitivity of almond farming profitability to climate uncertainties, particularly in years with more extreme precipitation or temperature anomalies, as well as variations in farm size.
 
-Plot 2, which depicts total profit over time with uncertainty in price per ton, highlights how the variability in price impacts total profit. While fluctuations in baseline profit can play an important role, the scatter plot emphasizes how total profit is affected by the uncertainty in price per ton. The sensitivity analysis results show that while yield anomaly impacts profitability in certain years, price per ton contributes to the overall variability in total profit. These findings suggest that understanding the potential fluctuations in key parameters is critical for assessing the economic viability of almond farming under changing climate and market conditions.
+Plot 2, which depicts the almond yield anomaly by year, emphasizes how fluctuations in yield are influenced by climate variability and farm size. The boxplot reveals that yield anomalies exhibit considerable variation, with the spread of yields being wider during years with extreme climate conditions. The results indicate that variations in precipitation, temperature, and acres have a direct impact on almond yields, with years of unfavorable climate conditions leading to lower yields, while favorable conditions and larger farm sizes can lead to higher yields.
+
 
 
 

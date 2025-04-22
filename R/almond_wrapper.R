@@ -1,57 +1,34 @@
-#Almond Profit Function for Assignment 3
 #Computes profit from almond yield using functions: almondyield() and almond_profit(). 
 
 
-#' Computes almond yield anomaly based on minimum temperature and precipitation.
-#' @param year The year for which to calculate the yield anomaly
-#' @param clim Dataframe containing climate data with columns: day, month, year, tmax_C, tmin_C, and precip (mm) -- used for determining water cost
-#' @return profit ($)
-#' @author Taylor Cook and Kelsey Warren
-#' 
-#' function definition
-#' 
+#' Almond Yield and Profit wrapper function
+#'
+#' @param year # year of the data (1988-2010)
+#' @param precip # precipitation in mm
+#' @param min_temp # minimum temperature in degrees Celsius
+#' @param acres # farm size in acres
+#' @return # data frame with year, yield anomaly, yield, and profit
+#'
+#'#' @author Taylor Cook and Kelsey Warren
 
-
-almond_wrapper <- function(years, clim) {
-  # Create an empty data frame to store results (year(s) studied, yield anomaly, and profit)
-  profit_df <- data.frame(year = integer(), yield_anomaly = numeric(), profit = numeric())
+almond_wrapper <- function(year, precip, min_temp, acres){
   
-  # for loop through each year to calculate yield anomaly and profit
-  for (year in years) {
-    # Step 1: Calculate the yield anomaly using the almondyield function
-    yield_anomaly <- almondyield(year = year, clim = clim)
-    
-    # Step 2: Calculate the profit using the almond_profit function
-    profit_result <- almond_profit(
-      yield_anomaly = yield_anomaly,
-      clim = clim[clim$year == year, ],
-      acres = 500,
-      baseline_profit = 4000,
-      price_per_ton = 6000,
-      base_water_cost = 200
-    )
-    
-    # Extract the total profit (which is a list, we want the numeric value)
-    total_profit <- profit_result
-    
-    # Step 3: Store the results for the year in the data frame
-    profit_df <- rbind(profit_df, data.frame(year = year, yield_anomaly = yield_anomaly, profit = total_profit))
-  }
+  #coefficients kept the same
+  coefficients <- c(-0.015, -0.0046, -0.07, 0.0043, 0.28)
   
-  # Return the data frame with the results
-  return(profit_df)
+  #yield anomaly function
+  yield_anomaly <- coefficients[1] * min_temp + coefficients[2] * min_temp^2 + coefficients[3] * precip + coefficients[4] * precip^2 + coefficients[5]
+  
+  
+  baseline_profit <- 4000 
+  price_per_ton <- 6000 # $6000 per ton assumption
+  
+  #profit as a function of total yield, price per ton, profit margin
+  profit <-  baseline_profit + (yield_anomaly * price_per_ton * acres) 
+ 
+  # Return data frame with the year, yield anomaly, and profit
+  return(data.frame(year = year, yield_anomaly = yield_anomaly, profit = profit))
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 
