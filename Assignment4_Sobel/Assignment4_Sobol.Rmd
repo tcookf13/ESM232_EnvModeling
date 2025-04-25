@@ -1,0 +1,152 @@
+# Assignment 4: Sobol
+
+---
+author: "Taylor Cook"
+date: "2025-04-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(sensitivity)
+library(here)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(gridExtra)
+library(purrr)
+library(ggpubr)
+
+```
+
+# Question 1: Use the Sobel approach to generate parameter values for the 4 parameters
+
+```{r, setup}
+source(here("R/Catm.R"))
+
+
+# generate two examples of random number from parameter distributions
+
+np <- 1000
+k_o <- rnorm(mean = 0.1, sd = 0.1 * 0.1, n = np)
+k_d <- rnorm(mean = 0.7, sd = 0.7 * 0.1, n = np)
+v <- rnorm(mean = 300, sd = 50, n = np)
+height <- runif(min = 3.5, max = 5.5, n = np)
+
+X1 <- cbind.data.frame(k_o, k_d, v, height = height)
+
+# repeat sampling
+k_o <- rnorm(mean = 0.1, sd = 0.1 * 0.1, n = np)
+k_d <- rnorm(mean = 0.7, sd = 0.7 * 0.1, n = np)
+v <- rnorm(mean = 300, sd = 50, n = np)
+height <- runif(min = 3.5, max = 5.5, n = np)
+
+X2 <- cbind.data.frame(k_o, k_d, v, height = height)
+
+# there are different versions of sobol functions that have different approaches for estimating parameters and indices, we use an approach implemented by jansen
+
+sens_Catm_Sobol <- sobolSalt(model = NULL, X1, X2, nboot = 100)
+
+
+# Take a look at the Sobol generated sensitivity object
+# your parameters sets for sensitivity analysis are in X
+# You run the model for X, not necessarily X1 and X2
+
+
+```
+
+# Question 2: Run the atmospheric conductance model for these
+
+parameters
+
+```{r, sobolmodel}
+# run model for all parameter sets
+# make sure you give the parameters names
+
+parms <- as.data.frame(sens_Catm_Sobol$X)
+colnames(parms) <- colnames(X1)
+res <- pmap_dbl(parms, Catm)
+
+
+sens_Catm_Sobol <- sensitivity::tell(sens_Catm_Sobol, res, res.names = "ga")
+
+# main effect:  partitions variance (main effect without co-variance) - sums approximately to one
+sens_Catm_Sobol$S
+# useful to add names
+row.names(sens_Catm_Sobol$S) <- colnames(parms)
+sens_Catm_Sobol$S
+
+# total effect - accounts for parameter interactions, is the T in the code
+row.names(sens_Catm_Sobol$T) <- colnames(parms)
+sens_Catm_Sobol$T
+
+# Both the main effect and total effect can tell us something about how the parameter influences results
+
+
+print(sens_Catm_Sobol)
+
+```
+
+# Question 3: Plot conductance estimates in a way that accounts for parameter uncertainty
+
+```{r, plot}
+
+# graph two most sensitive parameters
+both <- cbind.data.frame(parms, gs = sens_Catm_Sobol$y)
+
+# look at overall gs sensitvity to uncertainty
+ggplot(both, aes(x = gs)) +
+  geom_histogram() +
+  geom_vline(xintercept = mean(both$gs), col = "steelblue")
+
+# look at response of conductance to the two interesting variables
+ggplot(both, aes(v, gs, col = height)) +
+  geom_point() +
+  labs(y = "Conductance (mm/s)", x = "Windspeed")
+
+
+# look at response of conductance to the two most important variables
+ggplot(both, aes(k_d, gs, col = k_o)) +
+  geom_point() +
+  labs(y = "Conductance (mm/s)", x = "k_d parameter")
+# use second most sensitive parameter (using most important as color)
+ggplot(both, aes(k_o, gs, col = k_d)) +
+  geom_point() +
+  labs(y = "Conductance (mm/s)", x = "k_d parameter")
+
+
+
+```
+
+# Question 4: Estimate the Sobel Indices for your output
+
+```{r}
+sens_Catm_Sobol2 <- sobolSalt(model = NULL, X1, X2, nboot = 100, scheme = "B")
+
+parms <- as.data.frame(sens_Catm_Sobol2$X)
+colnames(parms) <- colnames(X1)
+res <- pmap_dbl(parms, Catm)
+
+
+sens_Catm_Sobol2 <- sensitivity::tell(sens_Catm_Sobol2, res, res.names = "ga")
+
+# main effect:  partitions variance (main effect without co-variance) - sums approximately to one
+row.names(sens_Catm_Sobol2$S) <- colnames(parms)
+sens_Catm_Sobol2$S
+
+# total effect - accounts for parameter interactions
+row.names(sens_Catm_Sobol2$T) <- colnames(parms)
+sens_Catm_Sobol2$T
+
+# second order parameters interaction in controlling sensitivity
+# parameters are in order, interactiosn are small here
+sens_Catm_Sobol2$S2
+
+
+#If you cross 0 (negative number) in the Confidence interval, it means it is not signifcant
+```
+
+# Question 5: Comment on what this tells you about how atmospheric conductance and its sensitivity to variation in compared to the setting that we examined in class where wind speed was lower and less variable and vegetation was taller.
+
+The sensitivity analysis shows that the parameters k_o and k_d have a significant impact on the conductance estimates. The total effect indices indicate that these parameters account for a large portion of the variance in the model output. The interaction between k_o and k_d is also significant, suggesting that their combined effect on conductance is important. The confidence intervals for the Sobol indices indicate that the estimates are statistically significant, as they do not cross zero. This suggests that the model is sensitive to variations in these parameters, and their influence on conductance is robust. The results also indicate that the model is less sensitive to variations in the height parameter, which suggests that changes in vegetation height have a smaller impact on conductance estimates compared to the other parameters. This is consistent with the findings from the class setting, where windspeed was lower and less variable, and vegetation was taller. In that scenario, the model may have been less sensitive to variations in k_o and k_d, as the overall conductance estimates would have been influenced more by the height parameter. Overall, the sensitivity analysis highlights the importance of k_o and k_d in determining conductance estimates, and suggests that variations in these parameters should be carefully considered when interpreting model results. The findings also emphasize the need to account for parameter uncertainty in order to obtain reliable estimates of conductance.
