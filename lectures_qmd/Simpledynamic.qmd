@@ -13,7 +13,6 @@ library(here)
 
 Dynamic models always involves derivatives (equations that express how things change from time step to time step or place to place )
 
-
 Implement population **growth** as a derivative - a model of population change
 
 ```{r derivaties, echo=TRUE}
@@ -52,12 +51,11 @@ What if we wanted to look at population in 20 years given an initial condition
 
 Two options
 
-* explicit solution to differential equation is known; e.g. you can integrate both sides of the equation! Not always possible but lets look at a case where it is possible
+-   explicit solution to differential equation is known; e.g. you can integrate both sides of the equation! Not always possible but lets look at a case where it is possible
 
-* must be solved by iteration; this is what we do when we can't integrate both sides 
+-   must be solved by iteration; this is what we do when we can't integrate both sides
 
 # Explicit Solution is available
-
 
 ```{r explicit}
 source(here("R/exppopK.R"))
@@ -101,13 +99,11 @@ ggplot(Ptimep, aes(years, P, col = r)) +
 # notice how populatin becomes unstable for high growth rates!
 ```
 
-
 # Solving by thinking of problem as a difference equations
 
 Population models can be discrete (rather than continuous)
 
 So we could implement them as difference equations and iterate
-
 
 ```{r iterate1}
 source(here("R/discrete_logistic_popK.R"))
@@ -133,7 +129,6 @@ T <- 50
 # Compare discrete and analytic results
 
 Save the results from both to compare
-
 
 ```{r closed}
 source(here("R/exppopK.R"))
@@ -161,8 +156,8 @@ ggplot(tmp, aes(time, P, col = Ptype)) +
 # change the value of r, K , P0 - see how it effects the results
 ```
 
-
 # ODE example
+
 ```{r usingode}
 source(here("R/dexppop.R"))
 
