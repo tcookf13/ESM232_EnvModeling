@@ -3,11 +3,26 @@ output:
   pdf_document: default
   html_document: default
 ---
+
 # Assignment 4: Sobol
+
 ## Taylor Cook
+
 ### 2025-04-25
 
+# Part 1:
 
+### Write a paragraph describing how results of the sensitivity analysis reported on in the paper might contribute to understanding (or prediction) within an environmental problem solving or management context.
+
+*Exploring snow model parameter sensitivity using Sobol' variance decomposition*
+
+The sensitivity analysis results reported in the paper contribute significantly to environmental problem solving and management by identifying which snow model parameters most influence model outputs under both current and projected climate conditions. By using the Sobol' variance decomposition method on two types of snow models (SNOW-17 and VIC), the study reveals which parameters (such as maximum melt factor in SNOW-17 and albedo decay rates in VIC) most affect snow water equivalent (SWE) predictions. In a managemnet and climate change context, knowing which parameters drive the greatest variability allows managers to better account for uncertainty in future snowpack predictions. This could help guide planning for water supplies, reservoir operations, and drought preparedness in snow-dependent regions. Overall, the sensitivity analysis strengthens the ability to predict environmental responses to changing conditions and supports more resilient and adaptive decision-making frameworks.
+
+
+
+
+
+# Part 2
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -116,6 +131,7 @@ ggplot(sens_params, aes(k_o, gs, col = k_d)) +
 ```
 
 # Question 4: Plot conductance estimates against windspeed use the parameter that is 2nd in terms of total effect on response
+
 ```{r}
 
 #2nd paramater of total effect
@@ -145,8 +161,6 @@ ggplot(sens_params, aes(v, gs, col = height)) +
   labs(y = "Conductance (mm/s)", x = "Windspeed")
 
 ```
-
-
 
 # Question 5: Estimate the Sobel Indices for your output
 
@@ -188,7 +202,6 @@ ggplot(sens_params2, aes(x = gs2)) +
 
 # Question 5: Comment on what this tells you about how atmospheric conductance and its sensitivity to variation in compared to the setting that we examined in class where wind speed was lower and less variable and vegetation was taller.
 
-The sensitivity analysis analysis reveals that wind speed (v) is the dominant driver of variation in atmospheric conductance under this scenario. The total effect Sobol index for v is approximately 0.85, indicating that most of the variance in conductance is directly attributable to changes in wind speed alone. Vegetation height (height) also contributes meaningfully, though to a much lesser extent (~18%). In contrast, the conductance parameters k_o and k_d have negligible total effects, suggesting they do not significantly influence conductance in this scenario, either independently or through interactions.
+The sensitivity analysis analysis reveals that wind speed (v) is the dominant driver of variation in atmospheric conductance under this scenario. The total effect Sobol index for v is approximately 0.85, indicating that most of the variance in conductance is directly attributable to changes in wind speed alone. Vegetation height (height) also contributes meaningfully, though to a much lesser extent (\~18%). In contrast, the conductance parameters k_o and k_d have negligible total effects, suggesting they do not significantly influence conductance in this scenario, either independently or through interactions.
 
 This contrasts with the setting we examined in class, where wind speed was lower and less variable, and vegetation was taller. In that context, k_o and k_d were more influential, likely because the system was less driven by wind and more sensitive to plant-level physiological parameters. The shift in sensitivity observed here underscores how increased wind variability amplifies the importance of v in driving conductance, while the role of vegetation structure and internal resistances (k_o, k_d) becomes relatively less important.
-
