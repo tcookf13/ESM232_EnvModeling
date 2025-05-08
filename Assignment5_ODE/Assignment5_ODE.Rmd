@@ -1,0 +1,69 @@
+# Assignment 5: Using Sobol with an ODE solver
+
+## Taylor Cook
+
+### 2025-05-12
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(sensitivity)
+library(here)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(gridExtra)
+library(purrr)
+library(ggpubr)
+
+```
+
+Consider the following model of forest growth (where forest size in measured units of carbon (C))
+
+a. dC/dt = r * C (for forests where C is below threshold canopy cover)
+b. dC/dt = g * (1 - C/K) (for forests where carbon is at or above the threshold canopy closure)
+
+
+
+## Question 1: Implement model in R as a differential equation
+```{r}
+# Define the parameters
+r <- 0.1 # growth rate for forests below threshold canopy cover
+g <- 0.05 # growth rate for forests at or above threshold canopy cover
+K <- 100 # carrying capacity (threshold canopy cover)
+t <- seq(0, 100, by = 1) # time sequence
+C0 <- 10 # initial carbon (C) value
+# Define the differential equation
+forest_growth <- function(t, C, r, g, K) {
+  if (C < K) {
+    dCdt <- r * C
+  } else {
+    dCdt <- g * (1 - C/K)
+  }
+  return(dCdt)
+}
+
+# Define the ODE solver
+ode_solver <- function(t, C0, r, g, K) {
+  C <- numeric(length(t))
+  C[1] <- C0
+  for (i in 2:length(t)) {
+    dt <- t[i] - t[i-1]
+    dCdt <- forest_growth(t[i-1], C[i-1], r, g, K)
+    C[i] <- C[i-1] + dCdt * dt
+  }
+  return(C)
+}
+
+
+
+
+
+
+
+
+
+
+
+
