@@ -4,66 +4,200 @@
 
 ### 2025-05-12
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+library(tidyverse)
+library(deSolve)
 library(sensitivity)
 library(here)
-library(ggplot2)
-library(dplyr)
-library(tidyverse)
-library(gridExtra)
-library(purrr)
-library(ggpubr)
-
 ```
 
 Consider the following model of forest growth (where forest size in measured units of carbon (C))
 
-a. dC/dt = r * C (for forests where C is below threshold canopy cover)
-b. dC/dt = g * (1 - C/K) (for forests where carbon is at or above the threshold canopy closure)
-
-
+a.  dC/dt = r \* C (for forests where C is below threshold canopy cover)
+b.  dC/dt = g \* (1 - C/K) (for forests where carbon is at or above the threshold canopy closure)
 
 ## Question 1: Implement model in R as a differential equation
+
 ```{r}
-# Define the parameters
-r <- 0.1 # growth rate for forests below threshold canopy cover
-g <- 0.05 # growth rate for forests at or above threshold canopy cover
-K <- 100 # carrying capacity (threshold canopy cover)
-t <- seq(0, 100, by = 1) # time sequence
-C0 <- 10 # initial carbon (C) value
-# Define the differential equation
-forest_growth <- function(t, C, r, g, K) {
-  if (C < K) {
-    dCdt <- r * C
-  } else {
-    dCdt <- g * (1 - C/K)
-  }
-  return(dCdt)
+source(here("R/forestgrowth.R"))
+dforestgrowth
+```
+
+## Question 2: Run the model for 300 years (using ODE solver) starting with an initial forest size of 10 kg/C, and using the following parameters:
+
+a.  K = 250 kg C
+b.  r = 0.01 kg C/year
+c.  g = 2 kg C/year
+d.  canopy closure threshold of 50kgC
+
+```{r}
+# recall ODE needs ALL of our parameters in a single list
+# initial population and times for which we want output
+Cinitial <- 10 #intital forest size
+
+# gets results for 200 years (evaluating every year)
+simtimes <- seq(from = 1, to = 300)
+parms <- list(r = 0.01, K=250, g=2, Cthresh=50)
+
+result <- ode(y = Cinitial, times = simtimes, func = dforestgrowth, parms = parms)
+
+head(result)
+colnames(result) <- c("time", "C")
+
+# turn it into a data frame
+ode_result <- as.data.frame(result)
+
+
+```
+
+## Question 3: Plot the results of the simulation
+
+Graphing the trajectory with the parameters as given (no uncertainty)
+
+```{r}
+#plot
+ggplot(ode_result, aes(time, C)) +
+  geom_line(col="forestgreen") +
+  labs(title = "Forest Growth Model", x = "Time (years)", y = "Carbon (kg C)")
+```
+
+## Question 4: Run a Sobol global (vary all parameters at the same time) sensitivity that explores how the estimated *maximum forest size* (i.e. max of C 300 years, varies with these parameters):
+
+a.  pre canopy closure growth rate (r)
+b.  post canopy closure growth rate (g)
+c.  canopy closure threshold and carrying capacity (K)
+
+Parameters are normally distributed with means as given above and sd of 10% of mean value
+
+```{r}
+
+# come up with first set of sample parameters
+# we will assume that we know the initial population,
+# sobel needs TWO samples of paramets (i.e X1 and X2)
+
+
+# set the number of parameters
+np <- 2000
+K <- rnorm(mean = 250, sd = .1*250, n = np)
+r <- rnorm(mean = 0.01, sd = .1*.01, n = np)
+g<- rnorm(mean = 2, sd = .1*2, n = np)
+Cthresh <- rnorm(mean = 50, sd = .1*50, n = np)
+X1 <- cbind.data.frame(r = r, K = K, g = g, Cthresh = Cthresh)
+
+# repeat to get our second set of samples
+K <- rnorm(mean = 250, sd = .1*250, n = np)
+r <- rnorm(mean = 0.01, sd = .1*.01, n = np)
+g<- rnorm(mean = 2, sd = .1*2, n = np)
+Cthresh <- rnorm(mean = 50, sd = .1*50, n = np)
+X2 <- cbind.data.frame(r = r, K = K, g = g, Cthresh = Cthresh)
+
+# fix any negative values and they are not meaningful
+X1 <- X1 %>% map_df(pmax, 0.0)
+X2 <- X2 %>% map_df(pmax, 0.0)
+
+# create our sobel object and get sets ofparameters for running the model
+sens_F <- sobolSalt(model = NULL, X1, X2, nboot = 300)
+
+# our parameter sets are
+head(sens_F$X)
+
+# add names
+colnames(sens_F$X) <- c("r", "K", "g", "Cthresh")
+
+head(sens_F$X)
+
+# view the first parameter set
+sens_F$X[1, ] 
+
+##################################
+
+#Run ODE
+
+# ODE needs ALL of our parameters in a single list
+# initial population and times for which we want output
+Cinitial
+
+# gets results for 300 years (evaluating every year)
+simtimes <- seq(from = 1, to = 300)
+parms <- list(r = sens_F$X[1, "r"], K = sens_F$X[1, "K"], g = sens_F$X[1, "g"], Cthresh = sens_F$X[1, "Cthresh"] )
+
+result2 <- ode(y = Cinitial, times = simtimes, func = dforestgrowth, parms = parms)
+
+head(result2)
+colnames(result2) <- c("time", "C")
+# turn it into a data frame
+result2 <- as.data.frame(result2)
+ggplot(result2, aes(time, C)) +
+  geom_point()
+
+
+# extra our metrics of interest  from this
+# maximum population it gets to
+
+##########################
+
+# create function for calculating metrics for all parameters
+
+# computing our metrics into a function
+
+compute_metrics <- function(result2) {
+  maxC <- max(result2$C)
+ return(list(maxC = maxC))
 }
 
-# Define the ODE solver
-ode_solver <- function(t, C0, r, g, K) {
-  C <- numeric(length(t))
-  C[1] <- C0
-  for (i in 2:length(t)) {
-    dt <- t[i] - t[i-1]
-    dCdt <- forest_growth(t[i-1], C[i-1], r, g, K)
-    C[i] <- C[i-1] + dCdt * dt
-  }
-  return(C)
+# try it on our first parameter set, and look at when it gets to 100
+compute_metrics(result2)
+
+
+##########################
+
+# need to apply the ode and this function for all of our parameters
+# define a wrapper function to do everything we need - run solver and compute metrics - and send back results for each parameter
+
+# lets make the threshold 90% of carrying capacity
+
+c_wrapper <- function(r, K,g, Cthresh, Cinitial, simtimes, odefunc, metricfunc) {
+  parms <- list(r = r, K = K, g = g, Cthresh = Cthresh)
+  result <- ode(y = Cinitial, times = simtimes, func = odefunc, parms = parms, method="euler")
+  colnames(result2) <- c("time", "C")
+  # get metrics
+  metrics <- metricfunc(as.data.frame(result2))
+  return(metrics)
 }
 
+# test
+c_wrapper(
+  r = 0.01, K = 250, g = 2, Cthresh = 50, Cinitial = 10, simtimes = seq(from = 1, to = 300),
+  odefunc = dforestgrowth, metricfunc = compute_metrics
+)
 
 
+##########################
 
 
+# Run wrapper function for all parameters
+
+# now use pmap as we did before
+
+allresults <- as.data.frame(sens_F$X) %>% pmap(c_wrapper, Cinitial = Cinitial, simtimes = simtimes, odefunc = dforestgrowth, metricfunc = compute_metrics)
+
+# extract out results from pmap into a data frame
+allres <- allresults %>% map_dfr(`[`, c("maxC"))
 
 
+```
+
+## Question 5: Graph the results of the sensitivity analysis as a box plot of maximum forest size and record the two Sobel indices (S and T)
 
 
+```{r}
+# create boxplots
+tmp <- allres %>% pivot_longer(cols = everything(), names_to = "metric", values_to = "value")
+ggplot(tmp, aes(metric, value, col = metric)) +
+  geom_boxplot()
+```
 
 
 
