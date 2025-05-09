@@ -37,17 +37,17 @@ d.  canopy closure threshold of 50kgC
 # initial population and times for which we want output
 Cinitial <- 10 #intital forest size
 
-# gets results for 200 years (evaluating every year)
-simtimes <- seq(from = 1, to = 300)
-parms <- list(r = 0.01, K=250, g=2, Cthresh=50)
+# gets results for 300 years (evaluating every year)
+simtimes_plot <- seq(from = 1, to = 300)
+parms_plot <- list(r = 0.01, K=250, g=2, Cthresh=50)
 
-result <- ode(y = Cinitial, times = simtimes, func = dforestgrowth, parms = parms)
+result_plot <- ode(y = Cinitial, times = simtimes_plot, func = dforestgrowth, parms = parms_plot)
 
-head(result)
-colnames(result) <- c("time", "C")
+head(result_plot)
+colnames(result_plot) <- c("time", "C")
 
 # turn it into a data frame
-ode_result <- as.data.frame(result)
+ode_result_plot <- as.data.frame(result_plot)
 
 
 ```
@@ -58,7 +58,7 @@ Graphing the trajectory with the parameters as given (no uncertainty)
 
 ```{r}
 #plot
-ggplot(ode_result, aes(time, C)) +
+ggplot(ode_result_plot, aes(time, C)) +
   geom_line(col="forestgreen") +
   labs(title = "Forest Growth Model", x = "Time (years)", y = "Carbon (kg C)")
 ```
@@ -77,13 +77,14 @@ Parameters are normally distributed with means as given above and sd of 10% of m
 # we will assume that we know the initial population,
 # sobel needs TWO samples of paramets (i.e X1 and X2)
 
+Cintial <- 10 #intital forest size
 
 # set the number of parameters
 np <- 2000
-K <- rnorm(mean = 250, sd = .1*250, n = np)
-r <- rnorm(mean = 0.01, sd = .1*.01, n = np)
-g<- rnorm(mean = 2, sd = .1*2, n = np)
-Cthresh <- rnorm(mean = 50, sd = .1*50, n = np)
+K <- rnorm(mean = 250, sd = 0.1*250, n = np)
+r <- rnorm(mean = 0.01, sd = 0.1*0.01, n = np)
+g<- rnorm(mean = 2, sd = 0.1*2, n = np)
+Cthresh <- rnorm(mean = 50, sd = 0.1*50, n = np)
 X1 <- cbind.data.frame(r = r, K = K, g = g, Cthresh = Cthresh)
 
 # repeat to get our second set of samples
@@ -97,7 +98,7 @@ X2 <- cbind.data.frame(r = r, K = K, g = g, Cthresh = Cthresh)
 X1 <- X1 %>% map_df(pmax, 0.0)
 X2 <- X2 %>% map_df(pmax, 0.0)
 
-# create our sobel object and get sets ofparameters for running the model
+# create our sobel object and get sets of parameters for running the model
 sens_F <- sobolSalt(model = NULL, X1, X2, nboot = 300)
 
 # our parameter sets are
@@ -111,59 +112,62 @@ head(sens_F$X)
 # view the first parameter set
 sens_F$X[1, ] 
 
-##################################
+####################################
 
 #Run ODE
 
 # ODE needs ALL of our parameters in a single list
 # initial population and times for which we want output
-Cinitial
+Cinitial <- 10 
 
 # gets results for 300 years (evaluating every year)
 simtimes <- seq(from = 1, to = 300)
-parms <- list(r = sens_F$X[1, "r"], K = sens_F$X[1, "K"], g = sens_F$X[1, "g"], Cthresh = sens_F$X[1, "Cthresh"] )
+parms <- list(r = sens_F$X[1, "r"], 
+              K = sens_F$X[1, "K"], 
+              g = sens_F$X[1, "g"], 
+              Cthresh = sens_F$X[1, "Cthresh"] )
 
-result2 <- ode(y = Cinitial, times = simtimes, func = dforestgrowth, parms = parms)
+result <- ode(y = Cinitial, times = simtimes, func = dforestgrowth, parms = parms)
 
-head(result2)
-colnames(result2) <- c("time", "C")
+head(result)
+colnames(result) <- c("time", "C")
 # turn it into a data frame
-result2 <- as.data.frame(result2)
-ggplot(result2, aes(time, C)) +
+result <- as.data.frame(result)
+ggplot(result, aes(time, C)) +
   geom_point()
-
 
 # extra our metrics of interest  from this
 # maximum population it gets to
+maxC <- max(result$C)
+maxC
+
 
 ##########################
 
 # create function for calculating metrics for all parameters
-
 # computing our metrics into a function
 
-compute_metrics <- function(result2) {
-  maxC <- max(result2$C)
+compute_metrics <- function(result) {
+  maxC <- max(result$C)
  return(list(maxC = maxC))
 }
 
-# try it on our first parameter set, and look at when it gets to 100
-compute_metrics(result2)
+compute_metrics(result)
 
 
-##########################
+############################
 
 # need to apply the ode and this function for all of our parameters
 # define a wrapper function to do everything we need - run solver and compute metrics - and send back results for each parameter
 
 # lets make the threshold 90% of carrying capacity
 
-c_wrapper <- function(r, K,g, Cthresh, Cinitial, simtimes, odefunc, metricfunc) {
+c_wrapper <- function(r, K, g, Cthresh, Cinitial, simtimes, odefunc, metricfunc) {
   parms <- list(r = r, K = K, g = g, Cthresh = Cthresh)
   result <- ode(y = Cinitial, times = simtimes, func = odefunc, parms = parms, method="euler")
-  colnames(result2) <- c("time", "C")
+  colnames(result) <- c("time", "C")
   # get metrics
-  metrics <- metricfunc(as.data.frame(result2))
+  metrics <- metricfunc(as.data.frame(result))
   return(metrics)
 }
 
@@ -197,8 +201,8 @@ allres_organized <- allres %>% pivot_longer(cols = everything(), names_to = "met
 
 ```{r}
 # create boxplots
-tmp <- allres %>% pivot_longer(cols = everything(), names_to = "metric", values_to = "value")
-ggplot(tmp, aes(metric, value, col = metric)) +
+
+ggplot(allres_organized, aes(metric, value, col = metric)) +
   geom_boxplot()
 ```
 
