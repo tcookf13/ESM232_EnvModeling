@@ -186,6 +186,9 @@ allresults <- as.data.frame(sens_F$X) %>% pmap(c_wrapper, Cinitial = Cinitial, s
 # extract out results from pmap into a data frame
 allres <- allresults %>% map_dfr(`[`, c("maxC"))
 
+# organize said dataframe
+allres_organized <- allres %>% pivot_longer(cols = everything(), names_to = "metric", values_to = "value")
+
 
 ```
 
