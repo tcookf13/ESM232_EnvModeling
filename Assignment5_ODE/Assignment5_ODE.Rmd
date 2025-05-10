@@ -204,7 +204,38 @@ allres_organized <- allres %>% pivot_longer(cols = everything(), names_to = "met
 
 ggplot(allres_organized, aes(metric, value, col = metric)) +
   geom_boxplot()
+
+
+############################
+
+#Compute Sobol indices 
+# if 0 is in the confidence interval, the result is not sensitive to this parameter 
+# r doesn't matter on its own (0 in conf interval), but r matters when we account for interactions with K
+#larger indices/orginal = stronger effect
+
+# sobol can only handle one output at a time  - so we will need to do them separately
+
+sens_F_maxC <- sensitivity::tell(sens_F, allres$maxC)
+
+# first-order indices (main effect without co-variance)
+rownames(sens_F_maxC$S) <- c("r", "K", "g", "Cthresh")
+sens_F_maxC$S
+
+# total sensitivity index -note that this partitions the output variance
+rownames(sens_F_maxC$T) <- c("r", "K", "g", "Cthresh")
+sens_F_maxC$T
+
+
+#combine into one dataframe
+sens_F_maxC_df <- data.frame(
+  Parameter = c("r", "K", "g", "Cthresh"),
+  S = sens_F_maxC$S,
+  T = sens_F_maxC$T
+)
 ```
 
+## Question 6: In 2-3 sentance, discuss what the results of your simulation might mean. (For example think about how what parameters climate change might influence)
+
+The results of the Sobol sensitivity analysis indicate that the maximum forest size is most sensitive to the pre-canopy closure growth rate (r) and the carrying capacity (K), with the post-canopy closure growth rate (g) having a moderate influence, and the canopy closure threshold (Cthresh) contributing the least. This suggests that climate change factors affecting r and K, such as temperature and precipitation patterns influencing seedling growth and ecosystem capacity, could significantly impact forest growth and carbon sequestration potential, while changes in g and Cthresh may have a smaller overall effect on forest dynamics.
 
 
