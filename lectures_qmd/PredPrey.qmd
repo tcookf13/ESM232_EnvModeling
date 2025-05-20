@@ -34,24 +34,41 @@ pars <- c(rprey = 0.5, alpha = 0.3, eff = 0.2, pmort = 0.2, K = 100)
 
 # run the model
 res <- ode(func = lotvmod, y = currpop, times = days, parms = pars)
+
+
+#plot the time series of prey t
+plot1 <- ggplot(as.data.frame(res), aes(time, prey,pred)) +
+  geom_line() +
+  labs(y = "Prey", x = "Time")
+plot1
+
+plot2 <- ggplot(as.data.frame(res), aes(time, pred)) +
+  geom_line() +
+  labs(y = "Predator", x = "Time")
+plot2
+
+
 ```
 
 ## Run this model - how would you visualize results?
 
+
+
 ## Visualizing results
 
-* two variable dynamic models that have feedbacks between variables can create cyclical
-dynamics (and more complex )
+-   two variable dynamic models that have feedbacks between variables can create cyclical dynamics (and more complex )
 
-* Two ways to look at results
+-   Two ways to look at results
 
-  * time series of each state variable  (pred and prey)
-  
-  * how state variables interact with each other 
-    * interactions through time
-    * x versus y colored by time
+    -   time series of each state variable (pred and prey)
+
+    -   how state variables interact with each other
+
+        -   interactions through time
+        -   x versus y colored by time
 
 ## Relationship between populations {.scrollable}
+
 ```{r}
 # graph the results
 head(res)
@@ -79,12 +96,11 @@ ggarrange(p1, p2b)
 
 # Try other parameters {.scrollable}
 
-- try to bring relative size of predators (versus prey) higher 
+-   try to bring relative size of predators (versus prey) higher
 
-- what if you increase the predation rates (what might that look like in reality)
+-   what if you increase the predation rates (what might that look like in reality)
 
-- how might you add a carrying capacity   
-
+-   how might you add a carrying capacity
 
 ## Implementation {.scrollable}
 
@@ -127,10 +143,10 @@ ggarrange(p1, p2)
 # try with different parameter sets, can you create one where populations are stable - less cycling?
 ```
 
-
 ## Code for Lorenz system
 
 Lets look at a Lorenz System Code
+
 ```{r lorenze}
 # lorenz
 source(here("R/lorenz.R"))
@@ -140,16 +156,15 @@ lorenz
 
 ## Application of Lorenz {.scrollable}
 
-
 ```{r lorenzeapp}
 pars <- list(a = 10, b = 28, c = 8 / 3)
 res <- ode(func = lorenz, c(x = 0.1, y = 0, z = 0), times = seq(0, 50, by = 0.01), parms = pars)
 ```
- now plot 
 
+now plot
 
-* as a phase space diagram (x vs y, x vs z, y vs z) - using time for color
-* as a time series (e.g time on the x axis) add each variable with a different color
+-   as a phase space diagram (x vs y, x vs z, y vs z) - using time for color
+-   as a time series (e.g time on the x axis) add each variable with a different color
 
 then try with different initial conditions
 
@@ -171,6 +186,7 @@ ggplot(resl, aes(time, value, col = var)) +
 ```
 
 ## Plot with different initial conditions
+
 ```{r, lr2}
 # try with different initial conditions
 pars <- list(a = 15, b = 28, c = 8 / 4)
@@ -191,42 +207,38 @@ ggplot(resl, aes(time, value, col = var)) +
   geom_line()
 ```
 
-
 ## Sensitivity analysis
 
-Consider pred-prey 
-BUT what will be the output - if we want to 'quantify sensitivity'
-useful to look at a single value or set of value
+Consider pred-prey BUT what will be the output - if we want to 'quantify sensitivity' useful to look at a single value or set of value
 
 For example
 
-* Max Prey Population
-* Min Prey Population
-
+-   Max Prey Population
+-   Min Prey Population
 
 ## Sensitivity Analysis steps
 
-* Generate parameters (LHS, Sobol)
-* Metrics function
-* Wrapper Function
-* Run wrapper function to get metrics for all parameter sets
-* Graph and compute sensitivity statistics
+-   Generate parameters (LHS, Sobol)
+-   Metrics function
+-   Wrapper Function
+-   Run wrapper function to get metrics for all parameter sets
+-   Graph and compute sensitivity statistics
 
- Discussion section will review how to do with LHS
- 
+Discussion section will review how to do with LHS
+
 ## Example Sensitivity Analysis {.scrollable}
 
 Given a Predator Prey model with the possible values for parameters
 
-* $K$ - mean of 150, standard deviation 20
-* $r_{prey}$ - some where between 0.01 and 0.3
-* $\alpha$ - somewhere between 0.1 and 0.4
-* $eff$ - mean 0.3 standard deviation 0.01
-* $pmort$ - somewhere between 0.01 and 0.45
+-   $K$ - mean of 150, standard deviation 20
+-   $r_{prey}$ - some where between 0.01 and 0.3
+-   $\alpha$ - somewhere between 0.1 and 0.4
+-   $eff$ - mean 0.3 standard deviation 0.01
+-   $pmort$ - somewhere between 0.01 and 0.45
 
 How do the maximum and minimum numbers of predators and prey vary across parameters; which is most important in controlling population dynamics?
 
-Initial Conditions:  start with 1 predator and 1 prey and run for 500 time steps
+Initial Conditions: start with 1 predator and 1 prey and run for 500 time steps
 
 ```{r odesen}
 source(here("R/lotvmodK.R"))
@@ -289,8 +301,8 @@ p_wrapper <- function(rprey, alpha, eff, pmort, K, currpop, days, func) {
 
 ## Now run wrapper for all parameters {.scrollable}
 
-* graph 
-* sobol indices
+-   graph
+-   sobol indices
 
 ```{r odesen2}
 # run our model for all parameters and extract the results
@@ -327,8 +339,8 @@ sens_PP_maxprey$T
 
 ## What does this tell you
 
-* what are the most important parameters 
-  *  maximum prey
-  *  minimum prey
-  *  maximum predator
-  *  minimum predator
+-   what are the most important parameters
+    -   maximum prey
+    -   minimum prey
+    -   maximum predator
+    -   minimum predator
