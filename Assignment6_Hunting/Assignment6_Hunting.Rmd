@@ -1,0 +1,77 @@
+# Assignment 5: Using Sobol with an ODE solver
+
+## Taylor Cook
+
+### 2025-05-12
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(deSolve)
+library(sensitivity)
+library(here)
+library(ggpubr)
+library(lhs)
+library(purrr)
+```
+
+Part 1
+
+Build this model (e.g add hunting to the lotvmodK.R),
+
+**Some requirements/hints for your model**
+
+*You should make sure that you don't hunt more prey than exist.*
+
+*To ensure that you might also add a minimum prey population input that must be met before hunting is allowed.*
+
+*Note you can make this as simple or as complex as you would like. You could represent hunting in a way that is similar to "harvesting" in the last assignment.*
+
+
+
+```{r}
+lotvmodK <- function(t, state, parameters) {
+  with(as.list(c(state, parameters)), {
+    dPrey <- r * Prey * (1 - Prey / K) - a * Prey * Pred
+    dPred <- e * a * Prey * Pred - m * Pred
+    
+    # Hunting effect
+    if (Prey > min_prey) {
+      dPrey <- dPrey - h * Prey
+    }
+    
+    list(c(dPrey, dPred))
+  })
+}
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+Part 2
+
+Explore how different hunting levels and different minimum prey populations (before hunting is allowed) are likely to effect the stability of the populations of both predator and prey.
+A key challenge is how you might want to define stability? It is up to you but you will need to write a sentence to explain why you chose the measure that you did. 
+It could be something as simple as maintaining a population above some value 50 years into the future.  
+
+Use this exploration to recommend a hunting target that will be sustainable (e.g leave you with a stable prey and predator population).
+
+It is up to you how you "explore" hunting  - you can simply try different values of the parameters in your hunting model or do it more formally by running your model across a range of values. You could think about parameter interactions
+
+You can assume the following are best guesses of key parameters
+
+rprey=0.95, alpha=0.01, eff=0.6,pmort=0.4, K=2000,
+
+
+
+
