@@ -1,0 +1,36 @@
+# Assignment 7: Calibration Part 1
+
+## Taylor Cook
+
+### 2025-06-04
+
+```{r}
+library(tidyverse)
+library(here)
+
+msage = readRDS(here("data/msage.RDS"))
+#View(msage)
+
+# first rearrange so we can plot all results
+msagel = msage %>% gather(key="run",value="str", -date, -month, -day, -year, -wy,-obs)
+source(here("R/compute_lowflowmetrics.R"))
+```
+
+#### Develop another metric of performance (different from in-class example)
+
+
+
+
+#### Apply to all runs in the dataset
+
+
+
+
+#### Find the "best" parameter set based on your metric
+
+
+
+
+#### Decide on a threshold for acceptability:
+
+*plot results for all acceptable parameters* and *choose a plot that shows model performance in a way that fits your metric*
