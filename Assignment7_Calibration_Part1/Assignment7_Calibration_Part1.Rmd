@@ -1,36 +1,93 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
 # Assignment 7: Calibration Part 1
 
 ## Taylor Cook
 
 ### 2025-06-04
 
+#### Develop another metric of performance (different from in-class example)
+
 ```{r}
 library(tidyverse)
 library(here)
+library(sensitivity)
 
 msage = readRDS(here("data/msage.RDS"))
-#View(msage)
 
-# first rearrange so we can plot all results
 msagel = msage %>% gather(key="run",value="str", -date, -month, -day, -year, -wy,-obs)
-source(here("R/compute_lowflowmetrics.R"))
+
+source(here("R/combined_rmse.R"))
+compute_all_metrics
 ```
-
-#### Develop another metric of performance (different from in-class example)
-
-
-
 
 #### Apply to all runs in the dataset
 
-
+```{r}
+# Apply compute_all_metrics() to each run and extract each metric from the returned list
+results <- msagel %>%
+  group_by(run) %>%
+  summarise(
+    combined_metric = compute_all_metrics(str, obs, month)$combined_metric,
+    rmse_normal = compute_all_metrics(str, obs, month)$rmse_normal,
+    cor = compute_all_metrics(str, obs, month)$cor
+  )
+```
 
 
 #### Find the "best" parameter set based on your metric
 
+```{r}
+# Find the run with the highest combined metric
+# use max because high correlation and low RMSE is good
+best_run <- results %>%
+  filter(combined_metric == max(combined_metric, na.rm = TRUE)) %>%
+  select(run, combined_metric)
+
+print(best_run)
+```
 
 
+#### Decide on a threshold for acceptability
+```{r}
+# Define a threshold for acceptability based on the combined metric
+quantile(results$combined_metric, 0.9)
 
-#### Decide on a threshold for acceptability:
+threshold <- 0.71
+acceptable_runs <- results %>%
+  filter(combined_metric >= threshold)
+print(acceptable_runs)
+```
 
 *plot results for all acceptable parameters* and *choose a plot that shows model performance in a way that fits your metric*
+
+```{r}
+# Plot the results for all acceptable runs
+ggplot(acceptable_runs, aes(x = run, y = combined_metric)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Acceptable Runs Based on Combined Metric",
+       x = "Run",
+       y = "Combined Metric") +
+  theme_minimal()
+
+
+#Chose scatter plot to show model perforamnce in a way that fits my metric
+ggplot(results, aes(x = rmse_normal, y = cor, color = combined_metric)) +
+  geom_point(size = 3) +
+  scale_color_viridis_c(option = "C", direction = 1) +
+  labs(title = "Model Performance: Correlation vs Normalized RMSE",
+       x = "Normalized RMSE (lower is better)",
+       y = "Correlation (higher is better)",
+       color = "Combined Metric") +
+  theme_minimal()
+```
+
+
+
+
+
+
+
