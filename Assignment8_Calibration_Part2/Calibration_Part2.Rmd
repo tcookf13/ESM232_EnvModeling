@@ -8,6 +8,7 @@
 library(tidyverse)
 library(here)
 library(sensitivity)
+library(lubridate)
 
 msage = readRDS(here("data/msage.RDS"))
 
@@ -15,6 +16,29 @@ msagel = msage %>% gather(key="run",value="str", -date, -month, -day, -year, -wy
 
 source(here("R/combined_rmse.R"))
 compute_all_metrics
+
+
+#First, isolate the observed data
+obs_df <- msagel %>% filter(run == "obs") %>% select(date, obs = str, month)
+
+performance_df <- msagel %>%
+  filter(run != "obs") %>%
+  group_by(run) %>%
+  group_map(~{
+    m <- .x$str
+    o <- obs_df$obs[match(.x$date, obs_df$date)]
+    mon <- .x$month
+    
+    metric <- compute_all_metrics(m = m, o = o, month = mon)$combined_metric
+    tibble(run = .y$run, performance_metric = metric)
+  }) %>%
+  bind_rows()
+
+
+# Join it to the long-format streamflow data
+msagel <- msagel %>%
+  left_join(performance_df, by = "run")
+
 ```
 
 ### Using your performance metric that you developed in Calibration Part 1
@@ -22,8 +46,61 @@ compute_all_metrics
 #### Use the performance values as weights to come up with a max likelihood estimate (MLE) of
 
 a)  daily streamflow
+
+```{r}
+# Compute the MLE for daily streamflow
+mle_daily <- msagel %>%
+  group_by(date) %>%
+  summarise(mle_str = weighted.mean(str, w = performance_metric, na.rm = TRUE)) %>%
+  ungroup()
+
+```
+
 b)  another component of streamflow that is relevant given your performance metric (e.g August streamflow in the class example)
 
+```{r}
+# Compute the MLE for August streamflow
+mle_august <- msagel %>%
+  filter(month == 8) %>%
+  group_by(date) %>%
+  summarise(mle_str_august = weighted.mean(str, w = performance_metric, na.rm = TRUE)) %>%
+  ungroup()
+```
+
+
 #### Graph MLE and observed for the streamflow component of interest
+```{r}
+# Extract observed streamflow
+obs_plot <- msagel %>%
+  filter(run == "obs") %>%
+  select(date, obs = str)
+
+# Plot MLE and observed streamflow
+ggplot() +
+  geom_line(data = obs_plot, aes(x = date, y = obs, color = "Observed"), size = 1) +
+  geom_line(data = mle_daily, aes(x = date, y = mle_str, color = "MLE Daily"), size = 1) +
+  labs(title = "Daily Streamflow: Observed vs MLE",
+       y = "Streamflow (cfs)",
+       x = "Date") +
+  scale_color_manual(values = c("Observed" = "blue", "MLE Daily" = "red")) +
+  theme_minimal()
+```
+
 
 #### Compute the correlations between observed and the MLE and observed flow for daily flow and your streamflow component of interest
+```{r}
+# Join observed with MLE for daily
+obs_mle_daily <- left_join(obs_plot, mle_daily, by = "date")
+
+# Join for August only
+obs_mle_august <- obs_mle_daily %>%
+  filter(month(date) == 8)
+
+# Compute correlations
+cor_daily <- cor(obs_mle_daily$obs, obs_mle_daily$mle_str, use = "complete.obs")
+cor_august <- cor(obs_mle_august$obs, obs_mle_august$mle_str, use = "complete.obs")
+
+cat("Correlation between observed and MLE daily streamflow:", cor_daily, "\n")
+cat("Correlation between observed and MLE August streamflow:", cor_august, "\n")
+```
+
