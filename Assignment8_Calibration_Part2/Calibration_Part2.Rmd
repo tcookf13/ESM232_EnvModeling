@@ -1,0 +1,29 @@
+# Assignment 8: Calibration Part 2
+
+## Taylor Cook
+
+### 2025-06-10
+
+```{r}
+library(tidyverse)
+library(here)
+library(sensitivity)
+
+msage = readRDS(here("data/msage.RDS"))
+
+msagel = msage %>% gather(key="run",value="str", -date, -month, -day, -year, -wy,-obs)
+
+source(here("R/combined_rmse.R"))
+compute_all_metrics
+```
+
+### Using your performance metric that you developed in Calibration Part 1
+
+#### Use the performance values as weights to come up with a max likelihood estimate (MLE) of
+
+a)  daily streamflow
+b)  another component of streamflow that is relevant given your performance metric (e.g August streamflow in the class example)
+
+#### Graph MLE and observed for the streamflow component of interest
+
+#### Compute the correlations between observed and the MLE and observed flow for daily flow and your streamflow component of interest
