@@ -1,8 +1,14 @@
+---
+---
+---
+
 # Assignment 8: Calibration Part 2
 
 ## Taylor Cook
 
 ### 2025-06-10
+
+### Use your performance metric that you developed in Calibration Part 1
 
 ```{r}
 library(tidyverse)
@@ -17,33 +23,41 @@ msagel = msage %>% gather(key="run",value="str", -date, -month, -day, -year, -wy
 source(here("R/combined_rmse.R"))
 compute_all_metrics
 
-
-#First, isolate the observed data
-obs_df <- msagel %>% filter(run == "obs") %>% select(date, obs = str, month)
-
-performance_df <- msagel %>%
-  filter(run != "obs") %>%
-  group_by(run) %>%
-  group_map(~{
-    m <- .x$str
-    o <- obs_df$obs[match(.x$date, obs_df$date)]
-    mon <- .x$month
-    
-    metric <- compute_all_metrics(m = m, o = o, month = mon)$combined_metric
-    tibble(run = .y$run, performance_metric = metric)
-  }) %>%
-  bind_rows()
-
-
-# Join it to the long-format streamflow data
-msagel <- msagel %>%
-  left_join(performance_df, by = "run")
-
 ```
 
-### Using your performance metric that you developed in Calibration Part 1
-
 #### Use the performance values as weights to come up with a max likelihood estimate (MLE) of
+
+```{r}
+
+
+# Apply your custom accuracy metric to each run (excluding date and obs columns)
+res <- msage %>%
+  select(-date, -month, -day, -year, -wy, -obs) %>%
+  apply(2, compute_all_metrics, o = msage$obs, month = msage$month)
+
+
+# Convert to data frame
+results <- as.data.frame(matrix(unlist(res), byrow = TRUE, ncol = 1))  # Assuming your function returns 1 metric
+colnames(results) <- "performance"
+results$run <- colnames(msage %>% select(-date, -month, -day, -year, -wy, -obs))
+
+#Nomralize performance as weights
+# Normalize to [0, 1]
+max_perf <- max(results$performance, na.rm = TRUE)
+max_perf
+
+min_perf <- min(results$performance, na.rm = TRUE)
+min_perf
+
+results <- results %>%
+  mutate(wt = (performance - min_perf) / (max_perf - min_perf),
+         wt = wt / sum(wt, na.rm = TRUE))  # Normalize so they sum to 1
+
+#add weights to msagel
+# Join weights with long-form streamflow data
+msagel <- left_join(msagel, results, by = "run")
+
+```
 
 a)  daily streamflow
 
@@ -51,8 +65,9 @@ a)  daily streamflow
 # Compute the MLE for daily streamflow
 mle_daily <- msagel %>%
   group_by(date) %>%
-  summarise(mle_str = weighted.mean(str, w = performance_metric, na.rm = TRUE)) %>%
+  summarise(mle_str = weighted.mean(str, w = wt, na.rm = TRUE)) %>%
   ungroup()
+mle_daily
 
 ```
 
@@ -63,17 +78,18 @@ b)  another component of streamflow that is relevant given your performance metr
 mle_august <- msagel %>%
   filter(month == 8) %>%
   group_by(date) %>%
-  summarise(mle_str_august = weighted.mean(str, w = performance_metric, na.rm = TRUE)) %>%
+  summarise(mle_str_august = weighted.mean(str, w = wt, na.rm = TRUE)) %>%
   ungroup()
+mle_august
 ```
 
-
 #### Graph MLE and observed for the streamflow component of interest
+
 ```{r}
 # Extract observed streamflow
-obs_plot <- msagel %>%
-  filter(run == "obs") %>%
-  select(date, obs = str)
+obs_plot <- msage %>%
+  select(date, obs) %>%
+  distinct()
 
 # Plot MLE and observed streamflow
 ggplot() +
@@ -82,25 +98,26 @@ ggplot() +
   labs(title = "Daily Streamflow: Observed vs MLE",
        y = "Streamflow (cfs)",
        x = "Date") +
-  scale_color_manual(values = c("Observed" = "blue", "MLE Daily" = "red")) +
+  scale_color_manual(values = c("Observed" = "lightblue", "MLE Daily" = "darkred")) +
   theme_minimal()
 ```
 
-
 #### Compute the correlations between observed and the MLE and observed flow for daily flow and your streamflow component of interest
+
 ```{r}
 # Join observed with MLE for daily
 obs_mle_daily <- left_join(obs_plot, mle_daily, by = "date")
 
 # Join for August only
-obs_mle_august <- obs_mle_daily %>%
+obs_mle_august <- left_join(obs_plot, mle_august, by = "date") %>%
   filter(month(date) == 8)
 
 # Compute correlations
 cor_daily <- cor(obs_mle_daily$obs, obs_mle_daily$mle_str, use = "complete.obs")
-cor_august <- cor(obs_mle_august$obs, obs_mle_august$mle_str, use = "complete.obs")
+cor_daily
+cor_august <- cor(obs_mle_august$obs, obs_mle_august$mle_str_august, use = "complete.obs")
+cor_august
 
 cat("Correlation between observed and MLE daily streamflow:", cor_daily, "\n")
 cat("Correlation between observed and MLE August streamflow:", cor_august, "\n")
 ```
-
